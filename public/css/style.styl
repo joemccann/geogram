@@ -1,5 +1,156 @@
+@import 'variables'
+@import 'normalize'
+
+
+
+*,
+*:after,
+*:before
+  -webkit-box-sizing: border-box
+  -moz-box-sizing: border-box
+  box-sizing: border-box
+
+html, body
+  height 100%
+
 body
-  padding: 50px
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif
+  font-size: 100%
+  font-family: Helvetica, Arial, sans-serif
+  background-color $white
+  color $black
+  
+img
+  max-width 100%
+
+nav
+  float right
+  margin-top 1%
+
 a
-  color: #00B7FF
+  color: $blue
+  text-decoration none
+
+
+p, li
+  font-size 1.6em
+  margin 0
+  padding 0
+  font-family: Helvetica, Arial, sans-serif
+
+h1
+  font-size 3em
+  font-weight normal
+  line-height 1.2
+  border-top 4px solid lighten($black,30)
+  color lighten($black,30)
+
+h2
+  font-size 2.4em
+  font-weight 200
+  line-height 1.1
+  font-family: Helvetica, Arial, sans-serif
+  margin 0
+
+  
+ul
+  list-style-type none
+  margin 0
+  padding 0
+  
+li
+  margin 2% 0
+
+header
+  position relative
+  overflow hidden
+
+footer
+  background-color $footerColor
+  margin 0% auto
+  text-align center
+  width: 100%
+
+footer p
+  color $white
+  font-size 1.2em
+
+#container
+  margin 3% auto 0
+  width 100%
+
+#logo-container
+  display inline-block
+  float left
+
+#nav-container
+  min-height 100px
+
+
+#logo
+  display inline-block
+  margin 0 auto
+  text-align left
+
+.block
+  display block
+
+.red
+  color $red
+
+.blue
+  color $blue
+
+.yellow
+  color $yellow
+
+.black
+  color $black
+
+.grey
+  color $grey
+
+.large
+  font-size 150%
+  line-height 0
+
+.larger
+  font-size 200%
+  line-height 0
+
+.largest
+  font-size 300%
+  line-height 0
+
+.opacity75
+  normOpacity(75)
+
+.no-touch a:hover
+  color: darken($blue,20)
+
+.louder
+  color $linkColor
+  font-size 1.125em
+
+.maxwidthcenter
+  width 96%
+  max-width $maxwidth
+  margin 0 auto
+  padding 0 2%
+
+.justify
+  text-align justify
+
+.centerShadowBox
+  boxShadow(8px 8px 6px -6px rgba(0,0,0, 0.56))
+  margin 0 auto
+
+.no-touch a.red:hover
+  color darken($red,20)
+
+.opacity75
+  normOpacity(75)
+
+
+@import 'forms'
+@import 'buttons'
+@import 'responsive'

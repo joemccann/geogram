@@ -1,12 +1,21 @@
-
-  <form id="instagram_geo_search_form" class="left-search-form" action="/search/geo" enctype="application/x-www-form-urlencoded" method="post">
-    <fieldset>
-      <label for='caption'>Latitude</label>
-      <input type='text' class="big-text-field" name='latitude' id="latitude" value='40.762485' placholder="40.762485">
-      <label for='caption'>Longitude</label>
-      <input type='text' class="big-text-field" name='longitude' id="longitude" value='-73.997513' placholder="-73.997513">
-      <label for='caption'>Diameter (in meters)</label>
-      <input type='text' class="big-text-field" name='distance' id="distance" value='1000' placholder="1000">
-      <input class="button" type='submit' value='Search for Photos!'>
-    </fieldset>
-  </form>  
+  <div id="contact-form-container">
+    <form id="instagram_geo_search_form" action="/search/geo" enctype="application/x-www-form-urlencoded" method="post">
+      <fieldset>
+        <div class="form-item">
+        	<label for="latitude">Latitude</label>
+		      <input type='text' name='latitude' id="latitude" value='40.762485' placholder="40.762485">
+        </div>
+        <div class="form-item">
+        	<label for="longitude">Longitude</label>
+		      <input type='text' name='longitude' id="longitude" value='-73.997513' placholder="-73.997513">
+        </div>
+        <div class="form-item">
+        	<label for="distance">Search Radius (in meters)</label>
+		      <input type='text' name='distance' id="distance" value='100' placholder="100">
+        </div>
+        <div class="form-item">
+          <button id="search-button"><span>DO IT!</span></button>
+        </div>
+      </fieldset>
+    </form>
+  </div>

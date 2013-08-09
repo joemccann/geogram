@@ -1,0 +1,75 @@
+@import 'fonts'
+
+$linkColor=#29d4c7
+$maxwidth=940px
+$white=#ffffff
+$lighterWhite=#f9f5f2
+$black=#000000
+$grey=#939393
+$blue=#009ed3
+$yellow=#fbfe07
+$red=#fc0404
+$footerColor=#1a1a1a
+
+borderRadius(radius = 5px)
+  -webkit-border-radius: radius
+  -moz-border-radius: radius
+  -ms-border-radius: radius
+  border-radius: radius
+
+boxShadow() 
+  -webkit-box-shadow: arguments
+  -moz-box-shadow: arguments
+  -ms-box-shadow: arguments
+  box-shadow: arguments
+
+normTransition(transition)
+  -webkit-transition: transition
+  -moz-transition: transition
+  -ms-transition: transition
+  -o-transition: transition
+  transition: transition
+
+normOpacity(opacity = 100) 
+  -khtml-opacity: (opacity/100)
+  -moz-opacity: (opacity/100)
+  opacity: (opacity/100)
+
+normTransform()
+  -webkit-transform: arguments
+  -moz-transform: arguments
+  -o-transform: arguments
+  -ms-transform: arguments
+  transform: arguments
+  
+normTransformOrigin()
+  -webkit-transform-origin: arguments
+  -moz-transform-origin: arguments
+  -o-transform-origin: arguments
+  -ms-transform-origin: arguments
+  transform-origin: arguments
+
+normPlaceholdercolor(color = #000000, font)
+  ::-webkit-input-placeholder
+    color: color
+    font-family: font
+
+  :-moz-placeholder
+    color: color
+    font-family: font
+
+  ::-moz-placeholder
+    color: color
+    font-family: font
+
+  :-ms-input-placeholder
+    color: color
+    font-family: font
+
+  [type="text"],
+  [type="email"],
+  textarea,
+    -moz-appearance:    textfield
+    -webkit-appearance: textfield
+    appearance: textfield  
+    font-family: font
