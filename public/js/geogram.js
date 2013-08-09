@@ -3,19 +3,19 @@ $(document).ready(function(){
   log('Ready...')
   
   // Global
-  window.SUB = {position:null, hasTouch:true}
+  window.Geogram = {position:null, hasTouch:true}
   
   // Check for touch events (note: this is not exhaustive) and thanks to the Surface
-  // and the Chromebook Pixel
+  // and the Chromebook Pixel...
   if( !('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch){
     document.documentElement.className = "no-touch"
-    SUB.hasTouch = false
+    Geogram.hasTouch = false
   } 
 
-  /* Handle Signup Form ****************************************/
+  /* Handle Search Form ****************************************/
   
-  var $connectForm = $('#contact-form')
-    , $connectButton = $('#connect-button')
+  var $form = $('#search-form')
+    , $button = $('#search-button')
 
   function strip(html){
      var tmp = document.createElement("div")
@@ -23,82 +23,73 @@ $(document).ready(function(){
      return tmp.textContent || tmp.innerText
   }
     
-  if($connectForm.length){
-    
-    var connectHandler = function(e){
+  if($form.length){
 
-      $connectButton.attr('disabled', true).addClass('opacity75')
+    var searchHandler = function(e){
+
+      $button.attr('disabled', true).addClass('opacity75')
       
       $('.error').removeClass('error')
       
-      var $inputEmail = $('input[type="email"]')
-        , $inputName = $('input[type="name"]')
-        , $inputMessage = $('textarea[name="message"]')
+      var $latitude = $('#latitude')
+        , $longitude = $('#longitude')
+        , $distance = $('#distance')
       
       // Sanitize...
-      $inputEmail.val( strip( $inputEmail.val() ) ) 
-      $inputName.val( strip( $inputName.val() ) ) 
-      $inputMessage.val( strip( $inputMessage.val() ) ) 
+      $latitude.val( strip( $latitude.val() ) ) 
+      $longitude.val( strip( $longitude.val() ) ) 
+      $distance.val( strip( $distance.val() ) ) 
 
       // Validate inputs
-      if( $inputName.val().length < 2 ){
+      if( $longitude.val().length < 2 ){
         log('Bad name.')
-        $inputName
+        $longitude
           .val('')
           .addClass('error')
           .focus()
         
-        $connectButton.removeAttr('disabled').removeClass('opacity75')
+        $button.removeAttr('disabled').removeClass('opacity75')
           
         return false
         
-      } else if( !( /(.+)@(.+){2,}\.(.+){2,}/.test( $inputEmail.val() ) ) ){
-        log('Bad email.')
-        $inputEmail
-          .val('')
-          .addClass('error')
-          .focus()
-        
-        $connectButton.removeAttr('disabled').removeClass('opacity75')
-        
-        return false
-      }        
-      
-      
-      $.post('/connect', $connectForm.serialize(), function(resp){
-        
-        // This is a weird delta between zepto and jquery...
-        var r = (typeof resp === 'string') ? JSON.parse(resp) : resp
-        
-        log(r)
-        
-        $connectForm.find('input, textarea').val('')
-        
-        $connectButton.removeAttr('disabled').removeClass('opacity75').blur()
-        
-        var responseMessageClass = r.error ? "failed-submission" : "successful-submission"
-        
-        $('#contact-header').find('h3').after('<p class="'+ responseMessageClass +'">'+r.message+'</p>')
-        
-        setTimeout(function(){
-          $('#contact-header').find('p').remove()
-        },5000)
-        
-      }) // end post
-      
+      }// todo check for numbers        
+
+
+      $.ajax({
+        type: 'POST',
+        url: '/search/geo',
+        data: $form.serialize(),
+        dataType: 'json',
+        success: function(data){
+          // This is a weird delta between zepto and jquery...
+          var r = (typeof data === 'string') ? JSON.parse(data) : data
+
+          log(r)
+          
+          $button.removeAttr('disabled').removeClass('opacity75').blur()
+        },
+        error: function(xhr, type){
+          // jesus fix this
+          if(xhr.status === 403) alert(xhr.responseText)
+          if(xhr.status === 404) alert(xhr.responseText)
+          if(xhr.status === 500) alert(xhr.responseText)
+          $button.removeAttr('disabled').removeClass('opacity75').blur()
+        }
+      })
+
       return false
       
     }
     
-    $connectButton.on('click', function(e){
-      connectHandler(e)
+    $button.on('click', function(e){
+      searchHandler(e)
       e.preventDefault()
       return false
 
     }) // end click()
     
-    $connectForm.on('submit', function(e){
-      connectHandler(e)
+    $form.on('submit', function(e){
+      searchHandler(e)
       e.preventDefault()
       return false
 
@@ -106,6 +97,6 @@ $(document).ready(function(){
     
   }
 
-  /* End Signup Form *******************************************/
+  /* End Search Form *******************************************/
   
 })
