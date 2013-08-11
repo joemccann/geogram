@@ -23,9 +23,12 @@ $(document).ready(function(){
      return tmp.textContent || tmp.innerText
   }
 
+  // quick and dirty way of showing the Instagrams
   function displayInstagrams(json){
 
     $('#instagram-photos-container').find('ul').remove()
+
+    if(!json) return alert('No Photos to Show')
 
     var photos = json.data
       , ul = "<ul>"
@@ -58,11 +61,23 @@ $(document).ready(function(){
       $longitude.val( strip( $longitude.val() ) ) 
       $distance.val( strip( $distance.val() ) ) 
 
-      console.dir($form.serialize())
+      // Validate latitude
+      if( $latitude.val().length < 2 ){
+        log('Need Latitude.')
+        $latitude
+          .val('')
+          .addClass('error')
+          .focus()
+        
+        $button.removeAttr('disabled').removeClass('opacity75')
+          
+        return false
+        
+      }    
 
-      // Validate inputs
+      // Validate longitude
       if( $longitude.val().length < 2 ){
-        log('Bad name.')
+        log('Need Longitude.')
         $longitude
           .val('')
           .addClass('error')
@@ -86,7 +101,13 @@ $(document).ready(function(){
 
           log(r)
 
-          displayInstagrams(r)
+          if(r.meta.code > 399){
+            log(r.meta.code + " is response code.")
+            alert(r.meta.error_message)
+          }
+          else{
+            displayInstagrams(r)
+          }
           
           $button.removeAttr('disabled').removeClass('opacity75').blur()
         },
@@ -120,6 +141,9 @@ $(document).ready(function(){
   }
 
   /* End Search Form *******************************************/
+
+
+  /* Google Maps ***********************************************/
 
   function initMap(){
 
@@ -164,6 +188,8 @@ $(document).ready(function(){
   } // end initMap
 
   initMap()
+
+  /* End Google Maps ********************************************/
 
   
 }) // end DOM ready
