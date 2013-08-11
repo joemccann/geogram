@@ -39,9 +39,11 @@ if ('development' == app.get('env')) {
   app.use(express.errorHandler())
 }
 
+// Core routes
 app.get('/', routes.index)
 
-// Remove or comment below if you don't want Dropbox support
+
+// Instagram routes
 var instagram_routes = require('./routes/instagram')
 
 app.post('/search/geo', instagram_routes.search_geo_post)

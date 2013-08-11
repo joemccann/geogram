@@ -113,6 +113,7 @@ $(document).ready(function(){
         },
         error: function(xhr, type){
           // jesus fix this
+          if(xhr.status === 400) alert(xhr.responseText)
           if(xhr.status === 403) alert(xhr.responseText)
           if(xhr.status === 404) alert(xhr.responseText)
           if(xhr.status === 500) alert(xhr.responseText)

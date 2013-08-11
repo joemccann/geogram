@@ -203,8 +203,8 @@ h1 {
   font-size: 3em;
   font-weight: normal;
   line-height: 1.2;
-  border-top: 4px solid #4d4d4d;
   color: #4d4d4d;
+  font-weight: normal;
 }
 h2 {
   font-size: 2.4em;
@@ -262,16 +262,21 @@ footer p {
 }
 #logo-container {
   display: inline-block;
-  float: left;
+  width: 100%;
+}
+#sync-with-dropbox {
+  float: right;
+  display: inline-block;
 }
 #nav-container {
-  margin: 1% auto;
+  margin: 0 auto;
   overflow: auto;
 }
 #logo {
   display: inline-block;
-  margin: 0 auto;
+  margin: 1% auto 0;
   text-align: left;
+  float: left;
 }
 .block {
   display: block;

@@ -47,8 +47,8 @@ Geogram.prototype._buildGeoSearchUri = function(lat,lng,minTimestamp,maxTimestam
 Geogram.prototype.executeGeoSearch = function(req,res,cb){
   var lat = req.body.latitude || 40.762485
     , lng = req.body.longitude || -73.997513
-    , minTimestamp = this._toUTC( req.body.minUTC ) || 1375315200
-    , maxTimestamp = this._toUTC( req.body.maxUTC ) || 1375920000
+    , minTimestamp = this._toUTC( req.body.minUTC ) || ''
+    , maxTimestamp = this._toUTC( req.body.maxUTC ) || ''
     , distance = req.body.distance || 35
 
   // console.log(lat + " is the latiude.")

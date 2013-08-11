@@ -20,6 +20,8 @@ var Downloader = function(folderPath){
  */
 Downloader.prototype.downloadSetOfFiles = function(json, cb){
 
+    console.info("Starting a new download of images...")
+
 	var self = this
 
 	if(!json || !json.data) return cb(new Error('No JSON data.'))
@@ -30,6 +32,8 @@ Downloader.prototype.downloadSetOfFiles = function(json, cb){
 	json.data.forEach(function dowloadSetForeachCb(el){
 		self.downloadFile( el.images.standard_resolution.url )
 	})	
+
+    return cb(null,"All images downloaded.")
 
 } // end downloadSetOfFiles
 
