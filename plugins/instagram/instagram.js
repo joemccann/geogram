@@ -64,8 +64,8 @@ Geogram.prototype.executeGeoSearch = function(req,res,cb){
 
   return request(config,function(error,response,body){
     if(error){
-      console.error(e)
-      return cb(e)
+      console.error(error)
+      return cb(error)
     }
     else {
       cb(null,body)

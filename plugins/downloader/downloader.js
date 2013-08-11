@@ -16,9 +16,10 @@ var Downloader = function(folderPath){
 /**
  * Cycles through an array of images and downloads them
  * @param {Object} json, JSON response from Instagram of array of images
+ * @param {String} folderName, The name of the folder to capture these instagrams
  * @param {Function} cb, callback function
  */
-Downloader.prototype.downloadSetOfFiles = function(json, cb){
+Downloader.prototype.downloadSetOfFiles = function(json, folderName, cb){
 
     console.info("Starting a new download of images...")
 
@@ -30,7 +31,7 @@ Downloader.prototype.downloadSetOfFiles = function(json, cb){
 
 	// Iterate over each one and download
 	json.data.forEach(function dowloadSetForeachCb(el){
-		self.downloadFile( el.images.standard_resolution.url )
+		self.downloadFile( el.images.standard_resolution.url, folderName )
 	})	
 
     return cb(null,"All images downloaded.")

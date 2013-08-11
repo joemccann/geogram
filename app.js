@@ -55,3 +55,42 @@ http.createServer(app).listen(app.get('port'), function(){
   console.log("\nhttp://127.0.0.1:" + app.get('port'))
 })
 
+
+
+
+/*
+// deleteme
+
+var k = "Times_Square_520252170212685996_195127509"
+var l = "Times_Square_520271669447995739_309782411"
+
+var leveldb = require(__dirname+'/plugins/leveldb/leveldb.js')
+
+
+leveldb.get('ALL_KEYS', {encoding: 'json' }, function (err, value) {
+	if (err) return console.log('Ooops!', err) // likely the key was not found
+
+	console.dir(value)
+	console.log('finished fetching ALL KEYS...')
+})
+
+
+// 3) fetch by key
+leveldb.get(k, {encoding: 'json' }, function (err, value) {
+	if (err) return console.log('Ooops!', err) // likely the key was not found
+
+	console.dir(value.data.length)
+	console.log('finished fetching...')
+})
+
+// end deleteme
+*/
+
+// Dirty
+
+// catch the uncaught errors that weren't wrapped in a domain or try catch statement
+// do not use this in modules, but only in applications, as otherwise we could have multiple of these bound
+process.on('uncaughtException', function(err) {
+    // handle the error safely
+    console.log(err);
+});
