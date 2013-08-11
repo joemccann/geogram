@@ -11,6 +11,8 @@ function toUTC(dateString){
 }
 
 
+var Instagram = {}
+
 Instagram.geogram = {
   executeGeoSearch: function(req,res){
 
@@ -41,10 +43,11 @@ Instagram.geogram = {
         return res.status(r.statusCode).send(e.error.message)
       }
       else {
-        
+
         return res.json(b)
       }
     })
+  } // end executeGeoSearch
   
 }
 

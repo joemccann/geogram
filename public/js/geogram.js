@@ -121,5 +121,49 @@ $(document).ready(function(){
 
   /* End Search Form *******************************************/
 
+  function initMap(){
+
+    var centerPoint = new google.maps.LatLng(40.754854,-73.984166)
+
+    var mapOptions = {
+      center: centerPoint,
+      zoom: 13,
+      mapTypeId: google.maps.MapTypeId.ROADMAP
+    }
+
+    var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions)
+
+    var centerMarker = new google.maps.Marker({
+          position: centerPoint,
+          map: map,
+          animation: google.maps.Animation.DROP
+    })
+
+
+    var infowindow = new google.maps.InfoWindow()
+
+    // Listen for click event  
+    google.maps.event.addListener(centerMarker, 'click', function(event) {
+      infowindow.setContent("Latitude: "+ event.latLng.lb + "<br>Longitude: "+ event.latLng.mb)
+      infowindow.open(map, centerMarker);
+    })
+
+
+    google.maps.event.addListener(map, 'click', function(event) {
+
+      var mapsLat = event.latLng.lb
+      var mapsLng = event.latLng.mb
+
+      $('#latitude').val(mapsLat)
+      $('#longitude').val(mapsLng)
+
+      marker = new google.maps.Marker({position: event.latLng, map: map})
+
+    });
   
-})
+  } // end initMap
+
+  initMap()
+
+  
+}) // end DOM ready
