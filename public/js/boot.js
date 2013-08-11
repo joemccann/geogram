@@ -8,3 +8,43 @@ require(["log",  $lib, "fastclick" ], function(l, zepto){
 		log('All JS files loaded...')
   })
 })
+
+
+function initialize() {
+
+  var centerPoint = new google.maps.LatLng(40.754854,-73.984166)
+  
+  var mapOptions = {
+    center: centerPoint,
+    zoom: 13,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  
+  var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+  var marker = new google.maps.Marker({
+        position: centerPoint,
+        map: map
+  });
+
+  google.maps.event.addListener(map, 'click', function(event) {
+
+    console.dir(event.latLng)
+
+    var mapsLat = event.latLng.lb
+    var mapsLng = event.latLng.mb
+
+    $('#latitude').val(mapsLat)
+    $('#longitude').val(mapsLng)
+
+    marker = new google.maps.Marker({position: event.latLng, map: map});
+
+    console.dir(marker)
+
+  });
+}
+
+window.onload = function(){
+	initialize()
+}
+

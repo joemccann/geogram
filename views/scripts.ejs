@@ -1,5 +1,7 @@
 <% if(env === 'production') { %>
 
+  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&amp;sensor=false">
+  </script>
   <script data-main="/js/boot.prod" src="/js/require.min.js"></script>
   <script type="text/javascript">
 
@@ -17,5 +19,7 @@
 
   </script>
 <% } else { %>
+  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&amp;sensor=false">
+  </script>
   <script data-main="/js/boot" src="/js/require.min.js"></script>
 <% }%>

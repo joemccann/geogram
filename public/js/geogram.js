@@ -22,6 +22,23 @@ $(document).ready(function(){
      tmp.innerHTML = html
      return tmp.textContent || tmp.innerText
   }
+
+  function displayInstagrams(json){
+
+    $('#instagram-photos-container').find('ul').remove()
+
+    var photos = json.data
+      , ul = "<ul>"
+
+    photos.forEach(function(el,i){
+      ul += "<li><a href='"+el.link+"'><img src='"+el.images.standard_resolution.url+"'></a></li>"
+    })
+
+    ul += "</ul>"
+
+    $('#instagram-photos-container').append(ul)
+  }
+
     
   if($form.length){
 
@@ -34,11 +51,14 @@ $(document).ready(function(){
       var $latitude = $('#latitude')
         , $longitude = $('#longitude')
         , $distance = $('#distance')
-      
+
+          
       // Sanitize...
       $latitude.val( strip( $latitude.val() ) ) 
       $longitude.val( strip( $longitude.val() ) ) 
       $distance.val( strip( $distance.val() ) ) 
+
+      console.dir($form.serialize())
 
       // Validate inputs
       if( $longitude.val().length < 2 ){
@@ -65,6 +85,8 @@ $(document).ready(function(){
           var r = (typeof data === 'string') ? JSON.parse(data) : data
 
           log(r)
+
+          displayInstagrams(r)
           
           $button.removeAttr('disabled').removeClass('opacity75').blur()
         },
@@ -98,5 +120,6 @@ $(document).ready(function(){
   }
 
   /* End Search Form *******************************************/
+
   
 })
