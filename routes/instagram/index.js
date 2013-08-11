@@ -131,7 +131,7 @@ exports.search_geo_post = function(req,res){
       else {
         console.log(data)
         // TODO: IF THIS IS FOR A DATE IN THE PAST, THEN NO NEED FOR INTERVAL
-        startInterval(req,originalJson,60000) // 30 seconds
+        startInterval(req,originalJson,60000) // 60 seconds
       }
     }) // end downloadSetOfFiles
 
