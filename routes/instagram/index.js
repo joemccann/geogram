@@ -46,6 +46,7 @@ function startInterval(req,data,timer){
          if(err) return console.error(err)
          else console.log(data)
         }) // end dowloadSetOfFiles
+
       }
 
     }) // end executeGeoSearch 
@@ -82,7 +83,7 @@ function stashInLevelDb(req, originalJson){
 
     var leveldbKey = req.body.name_of_folder + "_" + originalJson.data[0].id
 
-    console.log(leveldbKey + " is the leveldbkey")
+    // console.log(leveldbKey + " is the leveldbkey")
 
     updateKeysCollection(leveldbKey)
 
@@ -131,11 +132,10 @@ exports.search_geo_post = function(req,res){
       else {
         console.log(data)
         // TODO: IF THIS IS FOR A DATE IN THE PAST, THEN NO NEED FOR INTERVAL
-        startInterval(req,originalJson,60000) // 60 seconds
+        startInterval(req,originalJson,30000) // 30 seconds
       }
     }) // end downloadSetOfFiles
 
   }) // end executeGeoSearch
   
-  
-}
+} // end search_geo_post route
