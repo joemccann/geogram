@@ -1,25 +1,3 @@
-<% if(env === 'production') { %>
-
-  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&amp;sensor=false">
-  </script>
-  <script data-main="/js/boot.prod" src="/js/require.min.js"></script>
-  <script type="text/javascript">
-
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-XXXXXXX-X']);
-    _gaq.push(['_setDomainName', 'witaf.com']);
-    _gaq.push(['_setAllowLinker', true]);
-    _gaq.push(['_trackPageview']);
-
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-
-  </script>
-<% } else { %>
-  <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&amp;sensor=false">
-  </script>
-  <script data-main="/js/boot" src="/js/require.min.js"></script>
-<% }%>
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&amp;sensor=false">
+</script>
+<script data-main="/js/boot" src="/js/require.min.js"></script>
