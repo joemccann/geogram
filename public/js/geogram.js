@@ -176,8 +176,8 @@ $(document).ready(function(){
 
     google.maps.event.addListener(map, 'click', function(event) {
 
-      var mapsLat = event.latLng.lb
-      var mapsLng = event.latLng.mb
+      var mapsLat = event.latLng.mb
+      var mapsLng = event.latLng.nb
 
       $('#latitude').val(mapsLat)
       $('#longitude').val(mapsLng)
