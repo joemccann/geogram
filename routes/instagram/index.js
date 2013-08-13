@@ -1,12 +1,13 @@
 var path = require('path')
   , colors = require('colors')
+  , fs = require('fs')
   , Geogram = require(path.resolve(__dirname, '..', '..', 'plugins/instagram/instagram.js'))
   , Downloader = require(path.resolve(__dirname, '..', '..', 'plugins/downloader/downloader.js'))
-  , LevelDB = require(path.resolve(__dirname, '..', '..', 'plugins/leveldb/leveldb.js'))
+  // , LevelDB = require(path.resolve(__dirname, '..', '..', 'plugins/leveldb/leveldb.js'))
 
 var geogram = new Geogram()
   , downloader = new Downloader(path.resolve(__dirname, '..', '..', 'public/downloads/'))
-  , leveldb = LevelDB
+  // , leveldb = LevelDB
 
 // req gives us the POST params
 // data gives us the id
@@ -40,7 +41,8 @@ function startInterval(req,data,timer){
         console.info("New ID so we have new photos.".green)
         currentId = currentData.data[0].id // update if new
 
-        stashInLevelDb(req, currentData)
+        stashInFile(req, currentData)
+        // stashInLevelDb(req, currentData)
 
         downloader.downloadSetOfFiles(currentData, req.body.name_of_folder, function(err,data){
          if(err) return console.error(err)
@@ -99,6 +101,29 @@ function stashInLevelDb(req, originalJson){
 
 }
 
+function stashInFile(req,originalJson){
+
+  var savePath = path.resolve(__dirname,'..','..','public/stash/')
+
+  var folderPath = path.join(savePath, (req.body.name_of_folder || 'random_instagram_photos') )
+
+  if (!fs.existsSync(folderPath)){
+      fs.mkdirSync(folderPath)
+  }
+
+  var uniqueName = originalJson.data[0].id + '.json'
+
+  var stream = fs.createWriteStream( folderPath + '/' + uniqueName, {encoding: 'utf-8'})
+  
+  stream.write(JSON.stringify(originalJson))
+    
+  stream.end()
+
+  console.log('File: '.green +uniqueName.toString().yellow+ ' succesfully written'.green +' in \n'+folderPath.yellow+ ' \ndirectory.')
+
+
+}
+
 exports.search_geo_post = function(req,res){
 
   if(!req.body.latitude || !req.body.longitude) {
@@ -116,6 +141,8 @@ exports.search_geo_post = function(req,res){
 
     var originalJson = JSON.parse(data)
 
+    // console.dir(originalJson)
+
     // Check if data is empty, meaning, no images.
     if(!originalJson.data.length) return res.status(400).send("No data. Probably a bad request.")
     else res.json(data) 
@@ -124,7 +151,10 @@ exports.search_geo_post = function(req,res){
     /********** either download or store in db or something here ****************/  
     
     // Stash in LevelDB
-    stashInLevelDb(req, originalJson)
+    // stashInLevelDb(req, originalJson)
+
+    // Stash in flat file
+    stashInFile(req,originalJson)
 
     // Download initial set
     downloader.downloadSetOfFiles(originalJson, req.body.name_of_folder, function(err,data){
