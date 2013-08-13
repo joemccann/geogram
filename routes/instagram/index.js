@@ -3,11 +3,14 @@ var path = require('path')
   , fs = require('fs')
   , Geogram = require(path.resolve(__dirname, '..', '..', 'plugins/instagram/instagram.js'))
   , Downloader = require(path.resolve(__dirname, '..', '..', 'plugins/downloader/downloader.js'))
+  , Stasher = require(path.resolve(__dirname, '..', '..', 'plugins/stasher/stasher.js'))
   // , LevelDB = require(path.resolve(__dirname, '..', '..', 'plugins/leveldb/leveldb.js'))
 
 var geogram = new Geogram()
   , downloader = new Downloader(path.resolve(__dirname, '..', '..', 'public/downloads/'))
+  , stasher = new Stasher(path.resolve(__dirname,'..','..','public/stash/'))
   // , leveldb = LevelDB
+
 
 // req gives us the POST params
 // data gives us the id
@@ -41,7 +44,7 @@ function startInterval(req,data,timer){
         console.info("New ID so we have new photos.".green)
         currentId = currentData.data[0].id // update if new
 
-        stashInFile(req, currentData)
+        stasher.stashInFile(req.body.name_of_folder, originalJson.data[0].id, originalJson)
         // stashInLevelDb(req, currentData)
 
         downloader.downloadSetOfFiles(currentData, req.body.name_of_folder, function(err,data){
@@ -101,29 +104,6 @@ function stashInLevelDb(req, originalJson){
 
 }
 
-function stashInFile(req,originalJson){
-
-  var savePath = path.resolve(__dirname,'..','..','public/stash/')
-
-  var folderPath = path.join(savePath, (req.body.name_of_folder || 'random_instagram_photos') )
-
-  if (!fs.existsSync(folderPath)){
-      fs.mkdirSync(folderPath)
-  }
-
-  var uniqueName = originalJson.data[0].id + '.json'
-
-  var stream = fs.createWriteStream( folderPath + '/' + uniqueName, {encoding: 'utf-8'})
-  
-  stream.write(JSON.stringify(originalJson))
-    
-  stream.end()
-
-  console.log('File: '.green +uniqueName.toString().yellow+ ' succesfully written'.green +' in \n'+folderPath.yellow+ ' \ndirectory.')
-
-
-}
-
 exports.search_geo_post = function(req,res){
 
   if(!req.body.latitude || !req.body.longitude) {
@@ -154,7 +134,7 @@ exports.search_geo_post = function(req,res){
     // stashInLevelDb(req, originalJson)
 
     // Stash in flat file
-    stashInFile(req,originalJson)
+    stasher.stashInFile(req.body.name_of_folder, originalJson.data[0].id, originalJson)
 
     // Download initial set
     downloader.downloadSetOfFiles(originalJson, req.body.name_of_folder, function(err,data){
