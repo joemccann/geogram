@@ -12,6 +12,31 @@ $(document).ready(function(){
     Geogram.hasTouch = false
   } 
 
+
+  /**
+   * Utility method to async load a JavaScript file.
+   *
+   * @param {String} The name of the file to load
+   * @param {Function} Optional callback to be executed after the script loads.
+   * @return {void}
+   */
+  function asyncLoad(filename,cb){
+    (function(d,t){
+
+      var leScript = d.createElement(t)
+        , scripts = d.getElementsByTagName(t)[0]
+      
+      leScript.async = 1
+      leScript.src = filename
+      scripts.parentNode.insertBefore(leScript,scripts)
+
+      leScript.onload = function(){
+        cb && cb()
+      }
+
+    }(document,'script'))
+  }
+
   /* Handle Search Form ****************************************/
   
   var $form = $('#search-form')
@@ -146,8 +171,18 @@ $(document).ready(function(){
 
   /* Google Maps ***********************************************/
 
-  function initMap(){
+  if(Geogram.hasTouch){
+    asyncLoad('https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&sensor=true&callback=Geogram.initMap')
+  }
+  else{
+    asyncLoad('https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&sensor=false&callback=Geogram.initMap')
+  }
 
+
+  // Because we are conditionally setting the touch sensor boolean, we have to 
+  // add the callback to the script src as a paramter, which is here, global.
+  Geogram.initMap = function(){
+      
     var centerPoint = new google.maps.LatLng(40.754854,-73.984166)
 
     var mapOptions = {
@@ -187,8 +222,6 @@ $(document).ready(function(){
     });
   
   } // end initMap
-
-  initMap()
 
   /* End Google Maps ********************************************/
 

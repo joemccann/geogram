@@ -351,6 +351,7 @@ fieldset {
 }
 input[type='text'],
 input[type='email'],
+input[type='date'],
 textarea,
 #search-button {
   width: 100%;
@@ -468,19 +469,51 @@ button span {
   body {
     font-size: 100%;
   }
+  #contact-form-container {
+    width: 50%;
+    display: inline-block;
+    float: left;
+  }
+}
+#contact-form {
+  margin: 8% auto;
 }
 @media only screen and (max-width: 40em) {
   body {
     font-size: 100%;
   }
+  #contact-form-container {
+    width: 85%;
+    display: inline-block;
+    float: left;
+  }
+}
+#contact-form {
+  margin: 8% auto;
 }
 @media only screen and (max-width: 30em) {
   body {
     font-size: 100%;
   }
+  #contact-form-container {
+    width: 95%;
+    display: inline-block;
+    float: left;
+  }
+  #contact-form {
+    margin: 4% auto;
+  }
 }
 @media only screen and (max-width: 20em) {
   body {
     font-size: 100%;
+  }
+  #contact-form-container {
+    width: 98%;
+    display: inline-block;
+    float: left;
+  }
+  #contact-form {
+    margin: 2.5% auto;
   }
 }

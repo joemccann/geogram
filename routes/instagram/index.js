@@ -60,49 +60,49 @@ function startInterval(req,data,timer){
 
 }
 
-// keep track of all keys
-function updateKeysCollection(key){
+// // keep track of all keys
+// function updateKeysCollection(key){
 
-  leveldb.get("ALL_KEYS", {encoding: 'json'}, function (err, value) {
-    if(err){
-        // Doesn't exist so create it
-        var keysArr = []
-        keysArr.push(key)
-        leveldb.put('ALL_KEYS', keysArr, {encoding: 'json'}, function(err){
-          if(err) console.log('Ooops!', err) // likely the key was not found
-          else console.info("put keysArr init")
-        }) // end put
-      }else{
-        var arr = value
-        arr.push(key)
-        leveldb.put('ALL_KEYS', arr, {encoding: 'json'}, function(err){
-          if(err) console.log('Ooops!', err) // likely the key was not found
-          else console.info("appending to arr")
-        }) // end put
-      }
-    }) // end get
+//   leveldb.get("ALL_KEYS", {encoding: 'json'}, function (err, value) {
+//     if(err){
+//         // Doesn't exist so create it
+//         var keysArr = []
+//         keysArr.push(key)
+//         leveldb.put('ALL_KEYS', keysArr, {encoding: 'json'}, function(err){
+//           if(err) console.log('Ooops!', err) // likely the key was not found
+//           else console.info("put keysArr init")
+//         }) // end put
+//       }else{
+//         var arr = value
+//         arr.push(key)
+//         leveldb.put('ALL_KEYS', arr, {encoding: 'json'}, function(err){
+//           if(err) console.log('Ooops!', err) // likely the key was not found
+//           else console.info("appending to arr")
+//         }) // end put
+//       }
+//     }) // end get
 
-} // end updateKeysCollection
+// } // end updateKeysCollection
 
-function stashInLevelDb(req, originalJson){
+// function stashInLevelDb(req, originalJson){
 
-    var leveldbKey = req.body.name_of_folder + "_" + originalJson.data[0].id
+//     var leveldbKey = req.body.name_of_folder + "_" + originalJson.data[0].id
 
-    // console.log(leveldbKey + " is the leveldbkey")
+//     // console.log(leveldbKey + " is the leveldbkey")
 
-    updateKeysCollection(leveldbKey)
+//     updateKeysCollection(leveldbKey)
 
-    leveldb.put(leveldbKey, originalJson, {encoding: 'json' }, function (err) {
-      if (err) return console.log('Ooops!', err) // some kind of I/O error
+//     leveldb.put(leveldbKey, originalJson, {encoding: 'json' }, function (err) {
+//       if (err) return console.log('Ooops!', err) // some kind of I/O error
 
-      leveldb.get(leveldbKey, {encoding: 'json' }, function (err, value) {
-        if (err) return console.log('Ooops!', err) // likely the key was not found
-        // console.dir(value)
-        console.log('finished fetching...')
-      }) // end get
-    }) // end put
+//       leveldb.get(leveldbKey, {encoding: 'json' }, function (err, value) {
+//         if (err) return console.log('Ooops!', err) // likely the key was not found
+//         // console.dir(value)
+//         console.log('finished fetching...')
+//       }) // end get
+//     }) // end put
 
-}
+// }
 
 exports.search_geo_post = function(req,res){
 
