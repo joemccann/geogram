@@ -14,7 +14,8 @@
     "request": "2.26.0",
     "colors": "0.6.1",
     "levelup": "0.13.0",
-    "leveldown": "0.7.0"
+    "leveldown": "0.7.0",
+    "nano": "4.1.1"
   },
   "subdomain": "geogram",
   "engines": {
