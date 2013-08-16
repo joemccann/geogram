@@ -1,15 +1,64 @@
 var path = require('path')
   , colors = require('colors')
   , fs = require('fs')
+  , _ = require('lodash')
   , Geogram = require(path.resolve(__dirname, '..', '..', 'plugins/instagram/instagram.js'))
   , Downloader = require(path.resolve(__dirname, '..', '..', 'plugins/downloader/downloader.js'))
   , Stasher = require(path.resolve(__dirname, '..', '..', 'plugins/stasher/stasher.js'))
-  // , LevelDB = require(path.resolve(__dirname, '..', '..', 'plugins/leveldb/leveldb.js'))
+  , CouchDB = require(path.resolve(__dirname, '..', '..', 'plugins/couchdb/couchdb.js'))
 
 var geogram = new Geogram()
   , downloader = new Downloader(path.resolve(__dirname, '..', '..', 'public/downloads/'))
   , stasher = new Stasher(path.resolve(__dirname,'..','..','public/stash/'))
-  // , leveldb = LevelDB
+  , nano = CouchDB
+  , geogramdb = nano.db.use('geogram')
+
+
+function getHeadFromCouch(docName,cb){
+  geogramdb.head(docName, function(err, d, headers) {
+    if (err){
+      // Doesn't exist
+      cb(err)
+    }
+    else{
+      // Does exist
+      cb(null)
+    }
+  })
+}
+
+/**
+ * Writes the json content to couchdb
+ * @param {String} docName, The name of the document to be stored
+ * @param {String} json, The data to be written, in JSON format
+ */
+function stashInCouch(docName,json){
+  geogramdb.insert(json, docName, function(err, body) {
+    if(err) console.error(err)
+    else console.log("Stashed a document in CouchDB successfully.")
+  })
+}
+
+/**
+ * Fetches the json content to couchdb
+ * @param {String} docName, The name of the document to be stored
+ */
+function fetchFromCouch(docName,cb){
+  geogramdb.get(docName, function(err, body) {
+    if (err) return cb(err)
+    else cb(null,body)
+  })
+}
+
+
+/**
+ * Removes dupes from an array
+ * @param {Array} arr, The source array
+ * @param {String} docType, The key by witch to 
+ */
+ function removeDuplicateObjectsFromArray(arr,docType){
+  return _.map(_.groupBy(arr,function(doc){return doc[docType]}),function(grouped){return grouped[0]})
+}
 
 
 // req gives us the POST params
@@ -22,6 +71,7 @@ function startInterval(req,data,timer){
 
   console.info("Interval started...")
 
+  // Kick of the interval
   var inter = setInterval(function(){
 
     // Execute it right away, then set interval on grabbing new ones.
@@ -29,30 +79,26 @@ function startInterval(req,data,timer){
 
       if(err){
         // TODO: EMAIL ME SHIT IS DOWN
+        console.info("Error coming from geosearch.".yellow)
         return console.error(err)
       }
 
-      var currentData = JSON.parse(data)
+      var originalJson = JSON.parse(data)
 
-      if(currentData.data[0].id === currentId){
+      if(originalJson.data[0].id === currentId){
         console.info("currentId is the same so no new photos.")
-        console.log(currentData.data[0].id + " is from live data")
+        console.log(originalJson.data[0].id + " is from live data")
         console.log(currentId + " is the last ID")
         return false
       }
       else {
         console.info("New ID so we have new photos.".green)
-        currentId = currentData.data[0].id // update if new
+        // update since it is new.
+        currentId = originalJson.data[0].id 
 
-        stasher.stashInFile(req.body.name_of_folder, originalJson.data[0].id, originalJson)
-        // stashInLevelDb(req, currentData)
+        return storeInstagramData(req, req.body.name_of_folder, originalJson)
 
-        downloader.downloadSetOfFiles(currentData, req.body.name_of_folder, function(err,data){
-         if(err) return console.error(err)
-         else console.log(data)
-        }) // end dowloadSetOfFiles
-
-      }
+      } // end else
 
     }) // end executeGeoSearch 
 
@@ -60,49 +106,45 @@ function startInterval(req,data,timer){
 
 }
 
-// // keep track of all keys
-// function updateKeysCollection(key){
+function storeInstagramData(req,folderName,originalJson,cb){
 
-//   leveldb.get("ALL_KEYS", {encoding: 'json'}, function (err, value) {
-//     if(err){
-//         // Doesn't exist so create it
-//         var keysArr = []
-//         keysArr.push(key)
-//         leveldb.put('ALL_KEYS', keysArr, {encoding: 'json'}, function(err){
-//           if(err) console.log('Ooops!', err) // likely the key was not found
-//           else console.info("put keysArr init")
-//         }) // end put
-//       }else{
-//         var arr = value
-//         arr.push(key)
-//         leveldb.put('ALL_KEYS', arr, {encoding: 'json'}, function(err){
-//           if(err) console.log('Ooops!', err) // likely the key was not found
-//           else console.info("appending to arr")
-//         }) // end put
-//       }
-//     }) // end get
+  getHeadFromCouch(folderName, function(err){
+    // If there's an error, it means there is no doc by that name.
+    if(err && err.status_code === 404) {
+      // console.error(err)
+      stashInCouch(folderName, originalJson)
+      cb && cb()
+      return
+    }
 
-// } // end updateKeysCollection
+    return fetchFromCouch(folderName, function(err,couchJson){
 
-// function stashInLevelDb(req, originalJson){
+      console.log('Document name %s already exists.', folderName )
 
-//     var leveldbKey = req.body.name_of_folder + "_" + originalJson.data[0].id
+      console.log(originalJson.data.length + " is len of original json.")
+      console.log(couchJson.data.length + " is len of couch json.")
 
-//     // console.log(leveldbKey + " is the leveldbkey")
+      // Merge
+      couchJson.data = couchJson.data.concat(originalJson.data)
 
-//     updateKeysCollection(leveldbKey)
+      console.log(couchJson.data.length + " is len of merged objects.")
 
-//     leveldb.put(leveldbKey, originalJson, {encoding: 'json' }, function (err) {
-//       if (err) return console.log('Ooops!', err) // some kind of I/O error
+      // Remove dupes
+      couchJson.data = removeDuplicateObjectsFromArray(couchJson.data,'id')
 
-//       leveldb.get(leveldbKey, {encoding: 'json' }, function (err, value) {
-//         if (err) return console.log('Ooops!', err) // likely the key was not found
-//         // console.dir(value)
-//         console.log('finished fetching...')
-//       }) // end get
-//     }) // end put
+      console.log(couchJson.data.length + " is len of unique objects.")
 
-// }
+      // Store the data
+      stashInCouch(folderName, couchJson)
+      cb && cb()
+      return 
+
+    }) // end fetchFromCouch()
+
+  }) // end getHeadFromCouch()
+
+} // end storeInstagramData()
+
 
 exports.search_geo_post = function(req,res){
 
@@ -121,30 +163,14 @@ exports.search_geo_post = function(req,res){
 
     var originalJson = JSON.parse(data)
 
-    // console.dir(originalJson)
-
     // Check if data is empty, meaning, no images.
     if(!originalJson.data.length) return res.status(400).send("No data. Probably a bad request.")
     else res.json(data) 
 
-
-    /********** either download or store in db or something here ****************/  
-    
-    // Stash in LevelDB
-    // stashInLevelDb(req, originalJson)
-
-    // Stash in flat file
-    stasher.stashInFile(req.body.name_of_folder, originalJson.data[0].id, originalJson)
-
-    // Download initial set
-    downloader.downloadSetOfFiles(originalJson, req.body.name_of_folder, function(err,data){
-      if(err) return console.error(err)
-      else {
-        console.log(data)
-        // TODO: IF THIS IS FOR A DATE IN THE PAST, THEN NO NEED FOR INTERVAL
-        startInterval(req,originalJson,30000) // 30 seconds
-      }
-    }) // end downloadSetOfFiles
+    // Store the data
+    storeInstagramData(req, req.body.name_of_folder, originalJson, function(){
+      startInterval(req,originalJson,30000) // 30 seconds
+    })
 
   }) // end executeGeoSearch
   
