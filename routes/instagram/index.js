@@ -106,6 +106,13 @@ function startInterval(req,data,timer){
 
 }
 
+/**
+ * Stores the proper json data in couchdb
+ * @param {Object} req, Incoming request object
+ * @param {String} folderName, The name of the folder/document in couch 
+ * @param {Object} originalJson, New json data to be inserted or appended
+ * @param {Function} cb, Optional callback 
+ */
 function storeInstagramData(req,folderName,originalJson,cb){
 
   getHeadFromCouch(folderName, function(err){
