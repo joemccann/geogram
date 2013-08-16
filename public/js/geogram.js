@@ -219,7 +219,41 @@ $(document).ready(function(){
 
       marker = new google.maps.Marker({position: event.latLng, map: map})
 
-    });
+    }) // end eventListener click
+
+    // Wire up geocode button click handler.
+    $('#geocode-button').on('click', function(e){
+      codeAddress()
+      e.preventDefault()
+      return false
+    }) // end click()
+
+
+    // Geocode address and update lat/lng values
+    function codeAddress(){
+
+      var address = document.getElementById('address').value
+        , geocoder = new google.maps.Geocoder()
+        ;
+
+      geocoder.geocode( { 'address': address}, function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK){
+          var position = results[0].geometry.location
+          map.setCenter(position);
+          
+          var marker = new google.maps.Marker({
+              map: map,
+              position: position
+          })
+
+          $('#latitude').val(position.mb)
+          $('#longitude').val(position.nb)
+
+        }
+        else alert('Geocode was not successful for the following reason: ' + status)
+      }) // end geocode()
+
+    } // end codeAddress
   
   } // end initMap
 

@@ -353,9 +353,11 @@ input[type='text'],
 input[type='email'],
 input[type='date'],
 textarea,
+#geocode-button,
 #search-button {
   width: 100%;
 }
+#geocode-button span,
 #search-button span {
   font-size: 1.4em;
   height: 2.4em;
