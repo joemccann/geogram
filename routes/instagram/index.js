@@ -6,13 +6,14 @@ var path = require('path')
   , Downloader = require(path.resolve(__dirname, '..', '..', 'plugins/downloader/downloader.js'))
   , Stasher = require(path.resolve(__dirname, '..', '..', 'plugins/stasher/stasher.js'))
   , CouchDB = require(path.resolve(__dirname, '..', '..', 'plugins/couchdb/couchdb.js'))
+  ;
 
 var geogram = new Geogram()
   , downloader = new Downloader(path.resolve(__dirname, '..', '..', 'public/downloads/'))
   , stasher = new Stasher(path.resolve(__dirname,'..','..','public/stash/'))
   , nano = CouchDB
   , geogramdb = nano.db.use('geogram')
-
+  ;
 
 function getHeadFromCouch(docName,cb){
   geogramdb.head(docName, function(err, d, headers) {
