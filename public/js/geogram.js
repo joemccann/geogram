@@ -37,6 +37,8 @@ $(document).ready(function(){
     }(document,'script'))
   }
 
+
+
   /* Handle Search Form ****************************************/
   
   var $form = $('#search-form')
@@ -182,36 +184,60 @@ $(document).ready(function(){
   // Because we are conditionally setting the touch sensor boolean, we have to 
   // add the callback to the script src as a paramter, which is here, global.
   Geogram.initMap = function(){
-      
-    var centerPoint = new google.maps.LatLng(40.754854,-73.984166)
 
-    var mapOptions = {
-      center: centerPoint,
-      zoom: 13,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
+    var map; 
+
+    // Get user's location and stash...
+    if (navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(geoSuccess, geoError)
+    } 
+    else geoError("Not supported.")
+    
+    function geoSuccess(position) {
+      Geogram.position = position.coords
+      createMap()
     }
 
-    var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions)
+    function geoError(msg) {
+      log(arguments)
+      Geogram.position = null
+      createMap()
+    }
 
-    var centerMarker = new google.maps.Marker({
-          position: centerPoint,
-          map: map,
-          animation: google.maps.Animation.DROP
-    })
+    function createMap(){
+      var initLat = Geogram.position ? Geogram.position.latitude : 40.762485
+        , initLon = Geogram.position ? Geogram.position.longitude : -73.99751300000003 
 
+      var centerPoint = new google.maps.LatLng(initLat,initLon)
 
-    var infowindow = new google.maps.InfoWindow()
+      var mapOptions = {
+        center: centerPoint,
+        zoom: 13,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      }
 
-    // Listen for click event on infomarker  
-    google.maps.event.addListener(centerMarker, 'click', function(event) {
-      var lat = Number((event.latLng.mb).toFixed(4))
-      var lon = Number((event.latLng.nb).toFixed(4))
-      infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
-      infowindow.open(map, centerMarker);
-    })
+      map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions)
+      
+      $('#latitude').val(initLat)
+      $('#longitude').val(initLon)
 
+      var infowindow = new google.maps.InfoWindow()
 
-    // listen for click on map canvas 
+      var centerMarker = new google.maps.Marker({
+            position: centerPoint,
+            map: map,
+            animation: google.maps.Animation.DROP
+          })
+
+      // Listen for click event on infomarker  
+      google.maps.event.addListener(centerMarker, 'click', function(event) {
+        var lat = Number((event.latLng.mb).toFixed(4))
+        var lon = Number((event.latLng.nb).toFixed(4))
+        infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
+        infowindow.open(map, centerMarker);
+      })
+
+          // listen for click on map canvas 
     google.maps.event.addListener(map, 'click', function(event) {
 
       var mapsLat = event.latLng.mb
@@ -224,6 +250,33 @@ $(document).ready(function(){
 
     }) // end eventListener click
 
+    }
+    
+
+    function createPointAndCenterIt(lat,lon){
+
+      var centerPoint = new google.maps.LatLng(lat,lon)
+
+      var centerMarker = new google.maps.Marker({
+            position: centerPoint,
+            map: map,
+            animation: google.maps.Animation.DROP
+          })
+
+
+      var infowindow = new google.maps.InfoWindow()
+
+      // Listen for click event on infomarker  
+      google.maps.event.addListener(centerMarker, 'click', function(event) {
+        var lat = Number((event.latLng.mb).toFixed(4))
+        var lon = Number((event.latLng.nb).toFixed(4))
+        infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
+        infowindow.open(map, centerMarker);
+      })
+
+    } // createPointAndCenterIt()
+      
+
     // Wire up geocode button click handler.
     $('#geocode-button').on('click', function(e){
       codeAddress()
@@ -231,9 +284,10 @@ $(document).ready(function(){
       return false
     }) // end click()
 
-    // Wire up geocode button click handler.
+    // 
     $('#address').on('focus', toggleOriginalValue) 
     $('#address').on('blur', toggleOriginalValue) 
+
 
     // toggle between an element's original value and blank
     function toggleOriginalValue(){
