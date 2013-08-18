@@ -56,10 +56,10 @@ $(document).ready(function(){
     if(!json) return alert('No Photos to Show')
 
     var photos = json.data
-      , ul = "<ul>"
+      , ul = "<ul class='instagram-list'>"
 
     photos.forEach(function(el,i){
-      ul += "<li><a href='"+el.link+"'><img src='"+el.images.standard_resolution.url+"'></a></li>"
+      ul += "<li><a target=\"_blank\" href='"+el.link+"'><img src='"+el.images.standard_resolution.url+"'></a></li>"
     })
 
     ul += "</ul>"
@@ -202,13 +202,16 @@ $(document).ready(function(){
 
     var infowindow = new google.maps.InfoWindow()
 
-    // Listen for click event  
+    // Listen for click event on infomarker  
     google.maps.event.addListener(centerMarker, 'click', function(event) {
-      infowindow.setContent("Latitude: "+ event.latLng.lb + "<br>Longitude: "+ event.latLng.mb)
+      var lat = Number((event.latLng.mb).toFixed(4))
+      var lon = Number((event.latLng.nb).toFixed(4))
+      infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
       infowindow.open(map, centerMarker);
     })
 
 
+    // listen for click on map canvas 
     google.maps.event.addListener(map, 'click', function(event) {
 
       var mapsLat = event.latLng.mb
@@ -228,6 +231,19 @@ $(document).ready(function(){
       return false
     }) // end click()
 
+    // Wire up geocode button click handler.
+    $('#address').on('focus', toggleOriginalValue) 
+    $('#address').on('blur', toggleOriginalValue) 
+
+    // toggle between an element's original value and blank
+    function toggleOriginalValue(){
+      if(this._stash) return
+      
+      this._stash = this.value
+
+      return this.value = ''
+
+    }
 
     // Geocode address and update lat/lng values
     function codeAddress(){

@@ -1,48 +1,26 @@
 @import 'variables'
 
+.styled-form
+  background: #FFF;
+  border: 1px solid #E0E0E0;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  -moz-border-radius: 1px;
+  -webkit-border-radius: 1px;
+  border-radius: 1px;
+  padding 3.25%
+
 fieldset
   border none
   margin 0 auto
   background transparent
   padding 0
 
-// input[type='text'],
-// input[type='email'],
-// input[type='date'],
-// textarea,
-// #search-button
-//   width 70%
 
-// #geocode-button
-//   width 20%
+normPlaceholdercolor($black, Source Sans, Helvetica, Arial, sans-serif)
 
-
-// #geocode-button span,
-// #search-button span
-//   font-size 1.4em
-//   height 2.4em
-//   padding 9px 12px
-
-// input[type='text'],
-// input[type='email'],
-// textarea
-//   min-height 36px
-//   padding .5%
-//   font-size 1.4em
-//   color $black
-//   outline 1px solid $black
-//   background-color transparent
-//   border none
-//   font-family: Helvetica, Arial
-//   normTransition(all 0.10s ease-in-out)
-
-normPlaceholdercolor($black, Helvetica, Arial, sans-serif)
-
-// input[type='text']:focus,
-// input[type='email']:focus,
-// textarea:focus
-//   outline 2px solid $blue
-
+label
+  display block
 
 #address-form-container
   width 100%
@@ -50,14 +28,11 @@ normPlaceholdercolor($black, Helvetica, Arial, sans-serif)
   margin 1% 0
   max-width 880px
 
-#contact-form-container
-  width 35%
+#search-form-container
   display inline-block
-  float left
-
-
-#contact-form
-  margin 15% auto
+  width 100%
+  max-width 360px
+  vertical-align top
 
 .form-item
   padding 3.5% 0

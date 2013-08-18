@@ -16,7 +16,7 @@ body
 
 body
   font-size: 100%
-  font-family: Helvetica, Arial, sans-serif
+  font-family: 'Source Sans', Helvetica, Arial, sans-serif
   background-color $white
   color $black
   
@@ -36,7 +36,7 @@ p, li
   font-size 1.6em
   margin 0
   padding 0
-  font-family: Helvetica, Arial, sans-serif
+  font-family: 'Source Sans', Helvetica, Arial, sans-serif
 
 h1
   font-size 3.6em
@@ -50,7 +50,7 @@ h2
   font-size 2.4em
   font-weight 200
   line-height 1.1
-  font-family: Helvetica, Arial, sans-serif
+  font-family: 'Source Sans', Helvetica, Arial, sans-serif
   margin 0
 
   
@@ -108,11 +108,18 @@ footer p
   overflow auto
   min-height 480px
 
+#results-container
+  margin 1% auto
+  vertical-align top
+  width 100%
+
 #instagram-photos-container
-  width 60%
   display inline-block
   padding 1%
-  float right
+  overflow scroll
+  max-height 605px
+  vertical-align top
+
 
 #logo-container
   display inline-block
@@ -131,6 +138,9 @@ footer p
   margin 1% auto 0
   text-align left
   float left
+
+.instagram-list
+  padding 2% 0
 
 .block
   display block
