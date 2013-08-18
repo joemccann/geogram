@@ -50,6 +50,9 @@ var instagram_routes = require('./routes/instagram')
 app.post('/search/geo', instagram_routes.search_geo_post)
 
 
+app.get('/showme', routes.showme)
+
+
 // Fire up server...
 http.createServer(app).listen(app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'))
