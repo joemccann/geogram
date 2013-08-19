@@ -5,10 +5,11 @@
 
 var express = require('express')
   , routes = require('./routes')
-  , http = require('http')
   , path = require('path')
-
-var app = express()
+  , app = express(app)
+  , server = require('http').createServer(app)
+  , io = require('engine.io').attach(server)
+  ;
 
 // all environments
 
@@ -53,11 +54,25 @@ app.post('/search/geo', instagram_routes.search_geo_post)
 app.get('/showme', routes.showme)
 
 
-// Fire up server...
-http.createServer(app).listen(app.get('port'), function(){
-  console.log("Express server listening on port " + app.get('port'))
+// // Fire up server...
+// http.createServer(app).listen(app.get('port'), function(){
+//   console.log("Express server listening on port " + app.get('port'))
+//   console.log("\nhttp://127.0.0.1:" + app.get('port'))
+// })
+
+io.on('connection', function(socket){
+	console.log('io')
+  socket.on('message', function(v){
+    socket.send('pong');
+  });
+});
+
+
+server.listen(process.env.PORT || 3030, function(){
+  console.log('\033[96mlistening on localhost:3030 \033[39m');
   console.log("\nhttp://127.0.0.1:" + app.get('port'))
-})
+});
+
 
 // Dirty
 

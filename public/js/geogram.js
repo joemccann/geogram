@@ -38,7 +38,6 @@ $(document).ready(function(){
   }
 
 
-
   /* Handle Search Form ****************************************/
   
   var $form = $('#search-form')
@@ -330,6 +329,27 @@ $(document).ready(function(){
   } // end initMap
 
   /* End Google Maps ********************************************/
+
+
+  /* Engine.io **************************************************/
+
+  var socket = new eio.Socket();
+
+  socket.onopen = function(){
+    log("socket opened")
+    socket.send('ping');
+  };
+
+  socket.onclose = function(){
+    log("socket opened")
+  };
+
+  socket.onmessage = function(msg){
+    console.log(msg.data)
+  };
+
+
+  /* End Engine.io **********************************************/
 
   
 }) // end DOM ready
