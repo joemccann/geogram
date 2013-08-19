@@ -104,7 +104,9 @@ $(document).ready(function(){
   // add the callback to the script src as a paramter, which is here, global.
   Geogram.initMap = function(){
 
-    var map; 
+    var map
+      , markers = circles = []
+      ; 
 
     // Get user's location and stash...
     if (navigator.geolocation){
@@ -123,6 +125,7 @@ $(document).ready(function(){
       createMap()
     }
 
+
     // Create map with initial position.
     function createMap(){
 
@@ -133,7 +136,7 @@ $(document).ready(function(){
 
       var mapOptions = {
         center: centerPoint,
-        zoom: 13,
+        zoom: 16,
         mapTypeId: google.maps.MapTypeId.ROADMAP
       }
 
@@ -150,6 +153,8 @@ $(document).ready(function(){
             animation: google.maps.Animation.DROP
           })
 
+      markers.push(centerMarker)
+
       // Listen for click event on infomarker  
       google.maps.event.addListener(centerMarker, 'click', function(event) {
         var lat = Number((event.latLng.mb).toFixed(4))
@@ -158,44 +163,52 @@ $(document).ready(function(){
         infowindow.open(map, centerMarker);
       })
 
-          // listen for click on map canvas 
-    google.maps.event.addListener(map, 'click', function(event) {
+      // listen for click on map canvas 
+      google.maps.event.addListener(map, 'click', function(event){
 
-      var mapsLat = event.latLng.mb
-      var mapsLng = event.latLng.nb
+        var mapsLat = event.latLng.mb
+        var mapsLng = event.latLng.nb
 
-      $('#latitude').val(mapsLat)
-      $('#longitude').val(mapsLng)
+        $('#latitude').val(mapsLat)
+        $('#longitude').val(mapsLng)
 
-      marker = new google.maps.Marker({position: event.latLng, map: map})
+        removeAllMarkers()
 
-    }) // end eventListener click
+        var marker = new google.maps.Marker({position: event.latLng, map: map})
 
-    }
+        markers.push(marker)
+
+        setRadiusOverlay(marker)
+
+        createInfoWindow(marker)
+
+      }) // end eventListener click
+
+      setRadiusOverlay(centerMarker)
+
+    } // end createMap()
     
+    function removeAllMarkers(){
+      for (var i = 0; i < markers.length; i++ ) {
+        markers[i].setMap(null)
+        circles[i].setMap(null)
+      }
+      markers = circles = []
+    }
 
-    function createPointAndCenterIt(lat,lon){
-
-      var centerPoint = new google.maps.LatLng(lat,lon)
-
-      var centerMarker = new google.maps.Marker({
-            position: centerPoint,
-            map: map,
-            animation: google.maps.Animation.DROP
-          })
-
+    function createInfoWindow(marker){
 
       var infowindow = new google.maps.InfoWindow()
 
       // Listen for click event on infomarker  
-      google.maps.event.addListener(centerMarker, 'click', function(event) {
+      google.maps.event.addListener(marker, 'click', function(event) {
         var lat = Number((event.latLng.mb).toFixed(4))
         var lon = Number((event.latLng.nb).toFixed(4))
         infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
-        infowindow.open(map, centerMarker);
+        infowindow.open(map, marker);
       })
 
-    } // createPointAndCenterIt()
+    } // createInfoWindow()
       
 
     // Wire up geocode button click handler.
@@ -220,6 +233,20 @@ $(document).ready(function(){
 
     }
 
+    function setRadiusOverlay(marker){
+      // Add circle overlay and bind to marker
+      var circle = new google.maps.Circle({
+        map: map,
+        radius: parseInt( $('#distance').val() ),    // 100 metres
+        fillColor: '#AA0000',
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeWeight: 2
+      })
+      circle.bindTo('center', marker, 'position')
+      circles.push(circle)
+    }
+
     // Geocode address and update lat/lng values
     function codeAddress(){
 
@@ -239,6 +266,10 @@ $(document).ready(function(){
 
           $('#latitude').val(position.mb)
           $('#longitude').val(position.nb)
+
+          $('#name_of_folder').focus()
+
+          setRadiusOverlay(marker)
 
         }
         else alert('Geocode was not successful for the following reason: ' + status)
