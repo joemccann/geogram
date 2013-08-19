@@ -63,15 +63,15 @@ io.on('connection', function(socket){
 
 			var d = qs.parse(v.data)
 
-			instagram_routes.realtime_search_geo(d,function(err,data){
+			instagram_routes.realtime_search_geo(d,socket,v.type,function(err,data){
 
 				if(err){
 					console.error(err)
-		    	socket.send(JSON.stringify({data:err,type:'geogram-search-cb',error:true}))
+		    	socket.send(JSON.stringify({data:err,type:v.type,error:true}))
 		    }
 		    else {
 		    	// console.log(data)
-		    	socket.send(JSON.stringify({data:data,type:'geogram-search-cb'}))
+		    	socket.send(JSON.stringify({data:data,type:v.type}))
 		    }
 			
 			}) // end realtime_search_geo()
@@ -97,5 +97,6 @@ server.listen(process.env.PORT || 3030, function(){
 // do not use this in modules, but only in applications, as otherwise we could have multiple of these bound
 process.on('uncaughtException', function(err) {
     // handle the error safely
-    console.log(err);
+    console.error(err)
+    console.trace(err.stack)
 });

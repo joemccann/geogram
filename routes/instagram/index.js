@@ -61,90 +61,40 @@ function fetchFromCouch(docName,cb){
   return _.map(_.groupBy(arr,function(doc){return doc[docType]}),function(grouped){return grouped[0]})
 }
 
-
-// req gives us the POST params
-// data gives us the id
-// timer is duration
-function startInterval(req,data,timer){
-
-  var parsedData = data
-    , currentId = parsedData.data[0].id // set it initially
-
-  console.info("Interval started...")
-
-  // Kick of the interval
-  var inter = setInterval(function(){
-
-    // Execute it right away, then set interval on grabbing new ones.
-    geogram.executeGeoSearch(req,null,function(err,data){
-
-      if(err){
-        // TODO: EMAIL ME SHIT IS DOWN
-        console.info("Error coming from geosearch.".yellow)
-        return console.error(err)
-      }
-
-      var originalJson = JSON.parse(data)
-
-      if(originalJson.data[0].id === currentId){
-        console.info("currentId is the same so no new photos.")
-        console.log(originalJson.data[0].id + " is from live data")
-        console.log(currentId + " is the last ID")
-        return false
-      }
-      else {
-        console.info("New ID so we have new photos.".green)
-        // update since it is new.
-        currentId = originalJson.data[0].id 
-
-        return storeInstagramData(req, req.body.name_of_folder, originalJson)
-
-      } // end else
-
-    }) // end executeGeoSearch 
-
-  },timer)
-
-}
-
 /**
- * Stores the proper json data in couchdb
- * @param {Object} req, Incoming request object
+ * Stores the proper Instagram json data in couchdb
  * @param {String} folderName, The name of the folder/document in couch 
- * @param {Object} originalJson, New json data to be inserted or appended
+ * @param {Object} json, New json data to be inserted or appended
  * @param {Function} cb, Optional callback 
  */
-function storeInstagramData(req,folderName,originalJson,cb){
+function storeInstagramData(folderName,json,cb){
 
   getHeadFromCouch(folderName, function(err){
     // If there's an error, it means there is no doc by that name.
     if(err && err.status_code === 404) {
       // console.error(err)
-      stashInCouch(folderName, originalJson)
-      cb && cb()
+      stashInCouch(folderName, json)
+      cb && cb(null, "Created initial doc in couchdb.")
       return
     }
 
     return fetchFromCouch(folderName, function(err,couchJson){
 
       console.log('Document name %s already exists.', folderName )
-
-      console.log(originalJson.data.length + " is len of original json.")
-      console.log(couchJson.data.length + " is len of couch json.")
+      console.log(json.data.length + " is len of the new json.")
+      console.log(couchJson.data.length + " is len of couchdb json.")
 
       // Merge
-      couchJson.data = couchJson.data.concat(originalJson.data)
-
+      couchJson.data = couchJson.data.concat(json.data)
       console.log(couchJson.data.length + " is len of merged objects.")
 
       // Remove dupes
       couchJson.data = removeDuplicateObjectsFromArray(couchJson.data,'id')
-
       console.log(couchJson.data.length + " is len of unique objects.")
 
       // Store the data
       stashInCouch(folderName, couchJson)
-      cb && cb()
+      cb && cb(null,"Updated %s document.", folderName)
       return 
 
     }) // end fetchFromCouch()
@@ -153,10 +103,10 @@ function storeInstagramData(req,folderName,originalJson,cb){
 
 } // end storeInstagramData()
 
-exports.realtime_search_geo = function(data,cb){
+exports.realtime_search_geo = function(clientData,socket,wsType,cb){
 
   // Execute it right away, then set interval on grabbing new ones.
-  geogram.executeRealTimeGeoSearch(data,function(err,data){
+  geogram.executeRealTimeGeoSearch(clientData,function(err,data){
 
     if(err) {
       console.error(err)
@@ -172,17 +122,62 @@ exports.realtime_search_geo = function(data,cb){
     else{
 
       // Store the data
-      // storeInstagramData(req, req.body.name_of_folder, originalJson, function(){
-      //   startInterval(req,originalJson,30000) // 30 seconds
-      // })
+      return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
+        cb && cb(null,originalJson)
+        var uuid = originalJson.data[0].id
+        looper(clientData,uuid,socket,wsType,30000) // 30 seconds
+      }) // end storeInstagramData()
 
-      return cb(null,originalJson)
-
-    } 
-
+    } // else
 
   }) // end executeGeoSearch
 
+} // end realtime_search_geo()
+
+function looper(clientData,uuid,socket,wsId,timer){
+
+  var self = this
+  self.uuid = uuid // set it initially
+
+  console.info("Interval started for ID %s".blue  , self.uuid)
+
+  var inter = setInterval(function (){
+
+    geogram.executeRealTimeGeoSearch(clientData,function(err,data){
+
+      if(err) {
+        return console.error(err)
+      }
+
+      var originalJson = JSON.parse(data)
+
+      if (originalJson.meta.code === 400) return false
+
+      // Check if data is empty, meaning, no images.
+      if(!originalJson.data.length) return false
+      else{
+
+        if(originalJson.data[0].id === self.uuid){
+          return console.info("IDs are the same so no new photos.".yellow)
+        }
+        else {
+          console.info("IDs are different so we have new photos.".green)
+          // update since it is new.
+          self.uuid = originalJson.data[0].id 
+
+          if(socket){
+            socket.send(JSON.stringify({data:originalJson,type:wsId}))
+          }
+
+          return storeInstagramData(clientData.name_of_folder, originalJson)
+
+        } // end inner else
+
+      } // end outer else
+
+    }) // end executeGeoSearch  
+
+  },timer)
 
 }
 

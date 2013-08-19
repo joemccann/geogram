@@ -71,86 +71,6 @@ $(document).ready(function(){
     
   if($form.length){
 
-    // var searchHandler = function(e){
-
-    //   $button.attr('disabled', true).addClass('opacity75')
-      
-    //   $('.error').removeClass('error')
-      
-    //   var $latitude = $('#latitude')
-    //     , $longitude = $('#longitude')
-    //     , $distance = $('#distance')
-
-          
-    //   // Sanitize...
-    //   $latitude.val( strip( $latitude.val() ) ) 
-    //   $longitude.val( strip( $longitude.val() ) ) 
-    //   $distance.val( strip( $distance.val() ) ) 
-
-    //   // Validate latitude
-    //   if( $latitude.val().length < 2 ){
-    //     log('Need Latitude.')
-    //     $latitude
-    //       .val('')
-    //       .addClass('error')
-    //       .focus()
-        
-    //     $button.removeAttr('disabled').removeClass('opacity75')
-          
-    //     return false
-        
-    //   }    
-
-    //   // Validate longitude
-    //   if( $longitude.val().length < 2 ){
-    //     log('Need Longitude.')
-    //     $longitude
-    //       .val('')
-    //       .addClass('error')
-    //       .focus()
-        
-    //     $button.removeAttr('disabled').removeClass('opacity75')
-          
-    //     return false
-        
-    //   }// todo check for numbers        
-
-
-    //   $.ajax({
-    //     type: 'POST',
-    //     url: '/search/geo',
-    //     data: $form.serialize(),
-    //     dataType: 'json',
-    //     success: function(data){
-    //       // This is a weird delta between zepto and jquery...
-    //       var r = (typeof data === 'string') ? JSON.parse(data) : data
-
-    //       log(r)
-
-    //       if(r.meta.code > 399){
-    //         log(r.meta.code + " is response code.")
-    //         alert(r.meta.error_message)
-    //       }
-    //       else{
-    //         displayInstagrams(r)
-    //       }
-          
-    //       $button.removeAttr('disabled').removeClass('opacity75').blur()
-    //     },
-    //     error: function(xhr, type){
-    //       // jesus fix this
-    //       if(xhr.status === 400) alert(xhr.responseText)
-    //       if(xhr.status === 403) alert(xhr.responseText)
-    //       if(xhr.status === 404) alert(xhr.responseText)
-    //       if(xhr.status === 500) alert(xhr.responseText)
-    //       $button.removeAttr('disabled').removeClass('opacity75').blur()
-    //     }
-    //   })
-
-    //   return false
-      
-    // }
-    
     $button.on('click', function(e){
       searchHandler(e)
       e.preventDefault()
@@ -333,41 +253,36 @@ $(document).ready(function(){
 
   /* Engine.io **************************************************/
 
-  var socket = new eio.Socket();
+  var socket = new eio.Socket()
 
   socket.onopen = function(){
     log("socket opened")
-    socket.send('ping');
-  };
+    socket.send('ping')
+  }
 
   socket.onclose = function(){
     log("socket closed")
-  };
+  }
 
   socket.onmessage = function(msg){
 
     try{msg = JSON.parse(msg)}catch(e){}
 
-    if(msg.type && (msg.type == 'geogram-search-cb')){
+    if(msg.type && (msg.type == 'geogram-search')){
 
-      // todo handle errors
-
-      log('geogram-search-cb')
-
-      $button.removeAttr('disabled').removeClass('opacity75')
+      $button.removeAttr('disabled').removeClass('opacity75').blur()
 
       log(msg.data)
 
+      if(msg.error) return alert(msg.data)
+
       displayInstagrams(msg.data)
-      
-      $button.removeAttr('disabled').removeClass('opacity75').blur()
 
     }
 
     else log(msg.data)
 
-
-  };
+  }
 
   var searchHandler = function(e){
 
@@ -413,8 +328,7 @@ $(document).ready(function(){
       
     }// todo check for numbers        
 
-    socket.send( JSON.stringify( { type:'geogram-search',data: $form.serialize() } ) )
-
+    socket.send( JSON.stringify( { type:'geogram-search', data: $form.serialize() } ) )
 
     return false
     

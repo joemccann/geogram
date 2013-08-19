@@ -80,7 +80,6 @@ Geogram.prototype.executeGeoSearch = function(req,res,cb){
  */
 Geogram.prototype.executeRealTimeGeoSearch = function(data,cb){
 
-  console.log('executeRealTimeGeoSearch...')
   // console.dir(data)
   var lat = data.latitude || 40.762485
     , lng = data.longitude || -73.997513
@@ -88,11 +87,11 @@ Geogram.prototype.executeRealTimeGeoSearch = function(data,cb){
     , maxTimestamp = this._toUTC( data.maxUTC ) || ''
     , distance = data.distance || 35
 
-  console.log(lat + " is the latiude.")
-  console.log(lng + " is the longitude.")
-  console.log(minTimestamp + " is the minUTC.")
-  console.log(maxTimestamp + " is the maxUTC.")
-  console.log(distance + " is the distance.")
+  // console.log(lat + " is the latiude.")
+  // console.log(lng + " is the longitude.")
+  // console.log(minTimestamp + " is the minUTC.")
+  // console.log(maxTimestamp + " is the maxUTC.")
+  // console.log(distance + " is the distance.")
 
   var config = {
     method: 'GET'
