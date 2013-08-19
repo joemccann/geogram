@@ -6,6 +6,7 @@
 var express = require('express')
   , routes = require('./routes')
   , path = require('path')
+  , qs = require('querystring')
   , app = express(app)
   , server = require('http').createServer(app)
   , io = require('engine.io').attach(server)
@@ -50,27 +51,43 @@ var instagram_routes = require('./routes/instagram')
 
 app.post('/search/geo', instagram_routes.search_geo_post)
 
-
 app.get('/showme', routes.showme)
 
-
-// // Fire up server...
-// http.createServer(app).listen(app.get('port'), function(){
-//   console.log("Express server listening on port " + app.get('port'))
-//   console.log("\nhttp://127.0.0.1:" + app.get('port'))
-// })
-
 io.on('connection', function(socket){
-	console.log('io')
+
   socket.on('message', function(v){
-    socket.send('pong');
-  });
-});
+  	
+		try{v = JSON.parse(v)}catch(e){}
+
+  	if(v.type && (v.type == 'geogram-search')){
+
+			var d = qs.parse(v.data)
+
+			instagram_routes.realtime_search_geo(d,function(err,data){
+
+				if(err){
+					console.error(err)
+		    	socket.send(JSON.stringify({data:err,type:'geogram-search-cb',error:true}))
+		    }
+		    else {
+		    	// console.log(data)
+		    	socket.send(JSON.stringify({data:data,type:'geogram-search-cb'}))
+		    }
+			
+			}) // end realtime_search_geo()
+
+  	}
+
+  	if(v == 'ping'){ socket.send('pong')}
+
+  }) // end onmessage
+
+}) // end io connection
 
 
 server.listen(process.env.PORT || 3030, function(){
   console.log('\033[96mlistening on localhost:3030 \033[39m');
-  console.log("\nhttp://127.0.0.1:" + app.get('port'))
+  console.log("http://127.0.0.1:" + app.get('port'))
 });
 
 

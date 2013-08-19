@@ -153,6 +153,38 @@ function storeInstagramData(req,folderName,originalJson,cb){
 
 } // end storeInstagramData()
 
+exports.realtime_search_geo = function(data,cb){
+
+  // Execute it right away, then set interval on grabbing new ones.
+  geogram.executeRealTimeGeoSearch(data,function(err,data){
+
+    if(err) {
+      console.error(err)
+      return cb(err)
+    }
+
+    var originalJson = JSON.parse(data)
+
+    if (originalJson.meta.code === 400) return cb(originalJson.meta.error_message)
+
+    // Check if data is empty, meaning, no images.
+    if(!originalJson.data.length) return cb("No data. Probably a bad request.")
+    else{
+
+      // Store the data
+      // storeInstagramData(req, req.body.name_of_folder, originalJson, function(){
+      //   startInterval(req,originalJson,30000) // 30 seconds
+      // })
+
+      return cb(null,originalJson)
+
+    } 
+
+
+  }) // end executeGeoSearch
+
+
+}
 
 exports.search_geo_post = function(req,res){
 

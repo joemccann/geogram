@@ -73,5 +73,41 @@ Geogram.prototype.executeGeoSearch = function(req,res,cb){
   })
 }
 
+/**
+ * Executes a geo-location instagram search for realtime transport
+ * @param {Object} data, object of data params
+ * @param {Function} cb, callback to be executed
+ */
+Geogram.prototype.executeRealTimeGeoSearch = function(data,cb){
+
+  console.log('executeRealTimeGeoSearch...')
+  // console.dir(data)
+  var lat = data.latitude || 40.762485
+    , lng = data.longitude || -73.997513
+    , minTimestamp = this._toUTC( data.minUTC ) || ''
+    , maxTimestamp = this._toUTC( data.maxUTC ) || ''
+    , distance = data.distance || 35
+
+  console.log(lat + " is the latiude.")
+  console.log(lng + " is the longitude.")
+  console.log(minTimestamp + " is the minUTC.")
+  console.log(maxTimestamp + " is the maxUTC.")
+  console.log(distance + " is the distance.")
+
+  var config = {
+    method: 'GET'
+    , uri: this._buildGeoSearchUri(lat,lng,minTimestamp,maxTimestamp,distance)
+  }
+
+  return request(config,function(error,response,body){
+    if(error){
+      console.error(error)
+      return cb(error)
+    }
+    else {
+      cb(null,body)
+    }
+  })
+}
 
 module.exports = Geogram
