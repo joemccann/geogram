@@ -171,6 +171,8 @@ exports.search_geo_post = function(req,res){
 
     var originalJson = JSON.parse(data)
 
+    if (originalJson.meta.code === 400) return res.status(400).send(originalJson.meta.error_message)
+
     // Check if data is empty, meaning, no images.
     if(!originalJson.data.length) return res.status(400).send("No data. Probably a bad request.")
     else res.json(data) 
@@ -183,3 +185,19 @@ exports.search_geo_post = function(req,res){
   }) // end executeGeoSearch
   
 } // end search_geo_post route
+
+exports.create_geogram_job = function (req,res){
+  // Start date, end date, lat, lon, radius, folder name
+  if(!req.body.latitude || !req.body.longitude) {
+    res.type('text/plain')
+    return res.status(403).send("Bad Request. You need a latitude and longitude.")
+  }
+
+  // Determine if in past...
+
+  // Determine if indefinite...
+
+  // Determine if in future...
+
+  // Determine if right now
+}

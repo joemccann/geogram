@@ -204,7 +204,9 @@ $(document).ready(function(){
       createMap()
     }
 
+    // Create map with initial position.
     function createMap(){
+
       var initLat = Geogram.position ? Geogram.position.latitude : 40.762485
         , initLon = Geogram.position ? Geogram.position.longitude : -73.99751300000003 
 
