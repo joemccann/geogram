@@ -46,12 +46,13 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index)
 
 
+app.get('/showme', routes.showme)
+
+
 // Instagram routes
 var instagram_routes = require('./routes/instagram')
 
 app.post('/search/geo', instagram_routes.search_geo_post)
-
-app.get('/showme', routes.showme)
 
 io.on('connection', function(socket){
 
@@ -59,6 +60,9 @@ io.on('connection', function(socket){
   	
 		try{v = JSON.parse(v)}catch(e){}
 
+    // console.dir(v)
+
+    // if we're conducting a search...
   	if(v.type && (v.type == 'geogram-search')){
 
 			var d = qs.parse(v.data)
@@ -77,6 +81,25 @@ io.on('connection', function(socket){
 			}) // end realtime_search_geo()
 
   	}
+
+    // if we're fetching a list of all couchdb docs...
+    if(v.type && (v.type == 'list-all-couchdb-docs')){
+
+      instagram_routes.fetchAllDocs(function(err,data){
+
+        if(err){
+          console.error(err)
+          socket.send(JSON.stringify({data:err,type:v.type,error:true}))
+        }
+        else {
+          // console.log(data)
+          socket.send(JSON.stringify({data:data,type:v.type}))
+        }
+      
+      }) // end fetchAllDocs()
+
+    }
+
 
   	if(v == 'ping'){ socket.send('pong')}
 

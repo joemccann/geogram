@@ -220,7 +220,7 @@ ul {
   padding: 0;
 }
 li {
-  margin: 2% 0;
+  margin: 0.75%;
 }
 header {
   position: relative;
@@ -277,8 +277,12 @@ footer p {
   display: inline-block;
   padding: 1%;
   overflow: scroll;
-  max-height: 605px;
+  height: 605px;
   vertical-align: top;
+  width: 74%;
+}
+#instagram-photos-container ul li {
+  display: inline;
 }
 #logo-container {
   display: inline-block;
@@ -421,6 +425,7 @@ label {
   width: 100%;
   max-width: 360px;
   vertical-align: top;
+  width: 26%;
 }
 .form-item {
   padding: 3.5% 0;

@@ -1,6 +1,12 @@
 $(document).ready(function(){
   
   log('Ready...')
+
+  var render
+    , couchdb
+    , socket
+    , socketInitArray = []
+    ;
   
   // Global
   window.Geogram = {position:null, hasTouch:true}
@@ -37,37 +43,23 @@ $(document).ready(function(){
     }(document,'script'))
   }
 
-
-  /* Handle Search Form ****************************************/
-  
-  var $form = $('#search-form')
-    , $button = $('#search-button')
-
+  /**
+   * Utility method to strip HTML tags from a string
+   *
+   * @param {String} A potential block of HTML
+   * @return {void}
+   */
   function strip(html){
      var tmp = document.createElement("div")
      tmp.innerHTML = html
      return tmp.textContent || tmp.innerText
   }
 
-  // quick and dirty way of showing the Instagrams
-  function displayInstagrams(json){
 
-    $('#instagram-photos-container').find('ul').remove()
-
-    if(!json) return alert('No Photos to Show')
-
-    var photos = json.data
-      , ul = "<ul class='instagram-list'>"
-
-    photos.forEach(function(el,i){
-      ul += "<li><a target=\"_blank\" href='"+el.link+"'><img src='"+el.images.standard_resolution.url+"'></a></li>"
-    })
-
-    ul += "</ul>"
-
-    $('#instagram-photos-container').append(ul)
-  }
-
+  /* Handle Search Form ****************************************/
+  
+  var $form = $('#search-form')
+    , $button = $('#search-button')
     
   if($form.length){
 
@@ -106,7 +98,10 @@ $(document).ready(function(){
 
     var map
       , markers = circles = []
+      , canvasId = "map-canvas"
       ; 
+
+    if( !$('#'+canvasId).length ) return
 
     // Get user's location and stash...
     if (navigator.geolocation){
@@ -140,7 +135,7 @@ $(document).ready(function(){
         mapTypeId: google.maps.MapTypeId.ROADMAP
       }
 
-      map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions)
+      map = new google.maps.Map(document.getElementById(canvasId), mapOptions)
       
       $('#latitude').val(initLat)
       $('#longitude').val(initLon)
@@ -284,11 +279,16 @@ $(document).ready(function(){
 
   /* Engine.io **************************************************/
 
-  var socket = new eio.Socket()
+  socket = new eio.Socket()
 
   socket.onopen = function(){
+
     log("socket opened")
+
     socket.send('ping')
+
+    executeInitSocketMethods(socketInitArray)
+
   }
 
   socket.onclose = function(){
@@ -303,16 +303,28 @@ $(document).ready(function(){
 
       $button.removeAttr('disabled').removeClass('opacity75').blur()
 
-      log(msg.data)
-
       if(msg.error) return alert(msg.data)
 
-      displayInstagrams(msg.data)
+      $('#instagram-photos-container').find('ul').remove()
 
+      return render.instagramThumbs( $('#instagram-photos-container'), msg.data)
+
+    }
+
+    else if(msg.type && (msg.type == 'list-all-couchdb-docs') ){
+      console.dir(msg.data)
+      return render.allCouchDbDocs( $('#name_of_folder'), msg.data )
     }
 
     else log(msg.data)
 
+  }
+
+  var executeInitSocketMethods = function(arr){
+    
+    arr.forEach(function(el){
+      el.method.apply(null, el.args)
+    })
   }
 
   var searchHandler = function(e){
@@ -367,6 +379,78 @@ $(document).ready(function(){
 
 
   /* End Engine.io **********************************************/
+
+  /* CouchDB Module *********************************************/
+
+  var CouchDB = function(){
+  
+    
+    (function(){
+      
+    })()
+    
+    return {
+      listAllDocs: function(socketMsgId){
+        // console.log('listing all docs with id: %s', socketMsgId)
+        socket.send(JSON.stringify( { type: socketMsgId } ))
+      }
+    }
+  } // end CouchDB
+
+  couchdb = new CouchDB()
+
+  /* End CouchDB Module******************************************/
+
+
+  /* Render Module **********************************************/
+
+  var Render = function(){
+  
+    var _instagramThumbsTemplate
+      , _allCouchDbDocsTemplate
+    
+    (function(){
+      // prefetch handlebars templates
+      $.get('/templates/instagram-thumbs.hbs', function(data){
+        _instagramThumbsTemplate = Handlebars.compile(data)
+      })
+
+      $.get('/templates/list-all-couchdb-docs.hbs', function(data){
+        _allCouchDbDocsTemplate = Handlebars.compile(data)
+      })
+      
+    })()
+    
+    return {
+      instagramThumbs: function($element, data){
+        $element.html( _instagramThumbsTemplate( data ) )
+       },
+      allCouchDbDocs: function($element, data){
+        $element.html( _allCouchDbDocsTemplate( data ) )
+       }
+      }
+  } // end Render
+
+  render = new Render()
+
+  /* End Render Module *******************************************/
+
+
+  /* Show Me  ****************************************************/
+
+  if($('body').hasClass('showme')){
+
+    log('showme page')
+
+    socketInitArray.push({
+      method: couchdb.listAllDocs,
+      args: ['list-all-couchdb-docs']
+    })
+
+    
+  }
+
+  /* End Show Me  ************************************************/
 
   
 }) // end DOM ready

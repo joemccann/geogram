@@ -15,6 +15,11 @@ var geogram = new Geogram()
   , geogramdb = nano.db.use('geogram')
   ;
 
+/**
+ * Fetches the headers of a couchdb
+ * @param {String} docName, The name of the document to be fetched
+ * @param {Function} cb, Callback function to be executed
+ */
 function getHeadFromCouch(docName,cb){
   geogramdb.head(docName, function(err, d, headers) {
     if (err){
@@ -43,6 +48,7 @@ function stashInCouch(docName,json){
 /**
  * Fetches the json content to couchdb
  * @param {String} docName, The name of the document to be stored
+ * @param {Function} cb, Callback function to be executed
  */
 function fetchFromCouch(docName,cb){
   geogramdb.get(docName, function(err, body) {
@@ -50,6 +56,22 @@ function fetchFromCouch(docName,cb){
     else cb(null,body)
   })
 }
+
+/**
+ * Fetches all docs from Couch
+ * @param {Function} cb, Callback function to be executed
+ */
+function fetchAllDocs(cb){
+
+  geogramdb.list(function(err, body) {
+    if (err) return cb(err)
+    else cb(null,body)
+  })
+
+}
+
+exports.fetchAllDocs = fetchAllDocs
+
 
 
 /**
