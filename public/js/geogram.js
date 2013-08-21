@@ -9,7 +9,13 @@ $(document).ready(function(){
     ;
   
   // Global
-  window.Geogram = {position:null, hasTouch:true}
+  window.Geogram = {
+      hasTouch:true
+    , map: {
+        init: null
+      , canvasId: 'map-canvas'
+    }
+  }
   
   // Check for touch events (note: this is not exhaustive) and thanks to the Surface
   // and the Chromebook Pixel...
@@ -84,114 +90,176 @@ $(document).ready(function(){
 
   /* Google Maps ***********************************************/
 
-  if(Geogram.hasTouch){
-    asyncLoad('https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&sensor=true&callback=Geogram.initMap')
-  }
-  else{
-    asyncLoad('https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&sensor=false&callback=Geogram.initMap')
-  }
+  // Only do this if the map canvas DOM element exists on page
+  if( $('#'+ Geogram.map.canvasId).length ){
 
-
-  // Because we are conditionally setting the touch sensor boolean, we have to 
-  // add the callback to the script src as a paramter, which is here, global.
-  Geogram.initMap = function(){
-
-    var map
-      , markers = circles = []
-      , canvasId = "map-canvas"
-      ; 
-
-    if( !$('#'+canvasId).length ) return
-
-    // Get user's location and stash...
-    if (navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(geoSuccess, geoError)
-    } 
-    else geoError("Not supported.")
-    
-    function geoSuccess(position) {
-      Geogram.position = position.coords
-      createMap()
+    // Because we are conditionally setting the touch sensor boolean, we have to 
+    // add the callback to the script src as a paramter, which is here, global.
+    if(Geogram.hasTouch){
+      asyncLoad('https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&sensor=true&callback=Geogram.map.init')
+    }
+    else{
+      asyncLoad('https://maps.googleapis.com/maps/api/js?key=AIzaSyAehXjQK7Py8-F6qgq5MowUR_Azfyvz1QU&sensor=false&callback=Geogram.map.init')
     }
 
-    function geoError(msg) {
-      log(arguments)
-      Geogram.position = null
-      createMap()
+  }
+
+
+
+  Geogram.map.init = function(){
+
+    var GoogleMap = function(){
+      this.markers = []
+      this.circles = []
+      this.position = {latitude: 40.762485,longitude: -73.9975130}
+      this.map = null
     }
 
+    GoogleMap.prototype.initialize = function(){
+      // Get user's location and stash...
+      var self = this
 
-    // Create map with initial position.
-    function createMap(){
+      if (navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(function(position){
 
-      var initLat = Geogram.position ? Geogram.position.latitude : 40.762485
-        , initLon = Geogram.position ? Geogram.position.longitude : -73.99751300000003 
+          self.geoSuccess(position.coords,function(){
+            self.createMap(null,function(mark){
+              self.bindEvents(mark)
+            })
+          })
 
-      var centerPoint = new google.maps.LatLng(initLat,initLon)
+        }, function(err){
 
-      var mapOptions = {
-        center: centerPoint,
-        zoom: 16,
-        mapTypeId: google.maps.MapTypeId.ROADMAP
-      }
+          self.geoError(err || new Error('Geo not allowed by user.'),function(){
+            self.createMap(null,function(mark){
+              self.bindEvents(mark)
+            })
+          })
+        })
+      } 
+      else self.geoError(new Error('Geo not supported.'))
+    }
 
-      map = new google.maps.Map(document.getElementById(canvasId), mapOptions)
-      
-      $('#latitude').val(initLat)
-      $('#longitude').val(initLon)
+    GoogleMap.prototype.geoSuccess = function(position,cb){
+      this.position = position
+      cb && cb()
+    }
 
-      var infowindow = new google.maps.InfoWindow()
+    GoogleMap.prototype.geoError = function(err,cb){
+      log(err.message)
+      cb && cb()
+    }
+
+    GoogleMap.prototype.createMap = function(options,cb){
+
+      var initLat = this.position.latitude
+        , initLon = this.position.longitude
+        , centerPoint = new google.maps.LatLng(initLat,initLon)
+        , mapOptions = options || {
+            center: centerPoint
+          , zoom: 16
+          , mapTypeId: google.maps.MapTypeId.ROADMAP
+        }
+
+      this.map = new google.maps.Map(document.getElementById(Geogram.map.canvasId), mapOptions)
 
       var centerMarker = new google.maps.Marker({
             position: centerPoint,
-            map: map,
+            map: this.map,
             animation: google.maps.Animation.DROP
           })
 
-      markers.push(centerMarker)
+      this.markers.push(centerMarker)
+
+      this.setRadiusOverlay(centerMarker)
+
+      cb && cb(centerMarker)
+    }
+
+    GoogleMap.prototype.bindEvents = function(marker,cb){
+
+      var infowindow = new google.maps.InfoWindow()
+        , self = this
+        ;
+
+      // Wire up geocode button click handler.
+      $('#geocode-button').on('click', function(e){
+        self.codeAddress()
+        e.preventDefault()
+        return false
+      }) // end click()
+
 
       // Listen for click event on infomarker  
-      google.maps.event.addListener(centerMarker, 'click', function(event) {
+      google.maps.event.addListener(marker, 'click', function(event) {
         var lat = Number((event.latLng.mb).toFixed(4))
         var lon = Number((event.latLng.nb).toFixed(4))
         infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
-        infowindow.open(map, centerMarker);
+        infowindow.open(map, centerMarker)
       })
 
       // listen for click on map canvas 
-      google.maps.event.addListener(map, 'click', function(event){
+      google.maps.event.addListener(self.map, 'click', function(event){
 
-        var mapsLat = event.latLng.mb
-        var mapsLng = event.latLng.nb
+        var mapsLat = self.position.latitude = event.latLng.mb
+          , mapsLng = self.position.longitude = event.latLng.nb
 
-        $('#latitude').val(mapsLat)
-        $('#longitude').val(mapsLng)
+        self.updateInputValues()
 
-        removeAllMarkers()
+        self.removeAllMarkers()
 
-        var marker = new google.maps.Marker({position: event.latLng, map: map})
+        var marker = new google.maps.Marker({position: event.latLng, map: self.map})
 
-        markers.push(marker)
+        self.markers.push(marker)
 
-        setRadiusOverlay(marker)
+        self.setRadiusOverlay(marker)
 
-        createInfoWindow(marker)
+        self.createInfoWindow(marker)
 
-      }) // end eventListener click
+      }) // end eventListener click on canvas
 
-      setRadiusOverlay(centerMarker)
-
-    } // end createMap()
-    
-    function removeAllMarkers(){
-      for (var i = 0; i < markers.length; i++ ) {
-        markers[i].setMap(null)
-        circles[i].setMap(null)
-      }
-      markers = circles = []
+      cb && cb()
     }
 
-    function createInfoWindow(marker){
+    GoogleMap.prototype.updateInputValues = function(cb){
+      $('#latitude').val(this.position.latitude)
+      $('#longitude').val(this.position.longitude)
+      cb && cb()
+    }
+
+    GoogleMap.prototype.setRadiusOverlay = function(marker,cb){
+      
+      // Add circle overlay and bind to marker
+      var circle = new google.maps.Circle({
+        map: this.map,
+        radius: parseInt( $('#distance').val() ),    // 100 metres
+        fillColor: '#AA0000',
+        strokeColor: '#FF0000',
+        strokeOpacity: 0.8,
+        strokeWeight: 2
+      })
+
+      circle.bindTo('center', marker, 'position')
+
+      this.circles.push(circle)
+
+      cb && cb()
+    }
+    
+    GoogleMap.prototype.removeAllMarkers = function(cb){
+
+      for (var i = 0,j = this.markers.length; i < j; i++){
+        this.markers[i].setMap(null)
+        this.circles[i].setMap(null)
+      }
+
+      this.markers = this.circles = []
+
+      cb && cb()
+
+    }
+
+    GoogleMap.prototype.createInfoWindow = function(marker){
 
       var infowindow = new google.maps.InfoWindow()
 
@@ -200,20 +268,43 @@ $(document).ready(function(){
         var lat = Number((event.latLng.mb).toFixed(4))
         var lon = Number((event.latLng.nb).toFixed(4))
         infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
-        infowindow.open(map, marker);
+        infowindow.open(this.map, marker);
       })
 
     } // createInfoWindow()
+
+    // Geocode address 
+    GoogleMap.prototype.codeAddress = function(val){
+
+      var address = val || document.getElementById('address').value
+        , geocoder = new google.maps.Geocoder()
+        , self = this
+        ;
+
+      geocoder.geocode({'address': address}, function(results, status){
+
+        if(status == google.maps.GeocoderStatus.OK){
+
+          self.removeAllMarkers()
+
+          self.position = results[0].geometry.location
+
+          self.map.setCenter(self.position)
+          
+          var marker = new google.maps.Marker({
+              map: self.map,
+              position: self.position
+          })
+
+          self.updateInputValues()
+          self.setRadiusOverlay(marker)
+
+        }
+        else alert('Geocode was not successful for the following reason: ' + status)
+      }) // end geocode()
+
+    } // end codeAddress
       
-
-    // Wire up geocode button click handler.
-    $('#geocode-button').on('click', function(e){
-      codeAddress()
-      e.preventDefault()
-      return false
-    }) // end click()
-
-    // 
     $('#address').on('focus', toggleOriginalValue) 
     $('#address').on('blur', toggleOriginalValue) 
 
@@ -228,51 +319,12 @@ $(document).ready(function(){
 
     }
 
-    function setRadiusOverlay(marker){
-      // Add circle overlay and bind to marker
-      var circle = new google.maps.Circle({
-        map: map,
-        radius: parseInt( $('#distance').val() ),    // 100 metres
-        fillColor: '#AA0000',
-        strokeColor: '#FF0000',
-        strokeOpacity: 0.8,
-        strokeWeight: 2
-      })
-      circle.bindTo('center', marker, 'position')
-      circles.push(circle)
-    }
+    // Create the map module instance
+    var googleMap = new GoogleMap()
+    googleMap.initialize()
 
-    // Geocode address and update lat/lng values
-    function codeAddress(){
-
-      var address = document.getElementById('address').value
-        , geocoder = new google.maps.Geocoder()
-        ;
-
-      geocoder.geocode( { 'address': address}, function(results, status) {
-        if (status == google.maps.GeocoderStatus.OK){
-          var position = results[0].geometry.location
-          map.setCenter(position);
-          
-          var marker = new google.maps.Marker({
-              map: map,
-              position: position
-          })
-
-          $('#latitude').val(position.mb)
-          $('#longitude').val(position.nb)
-
-          $('#name_of_folder').focus()
-
-          setRadiusOverlay(marker)
-
-        }
-        else alert('Geocode was not successful for the following reason: ' + status)
-      }) // end geocode()
-
-    } // end codeAddress
   
-  } // end initMap
+  } // end Geogram.map.init
 
   /* End Google Maps ********************************************/
 
