@@ -5,6 +5,7 @@ $(document).ready(function(){
   var render
     , couchdb
     , socket
+    , pubsub
     , socketInitArray = []
     ;
   
@@ -103,7 +104,6 @@ $(document).ready(function(){
     }
 
   }
-
 
 
   Geogram.map.init = function(){
@@ -218,6 +218,15 @@ $(document).ready(function(){
 
       }) // end eventListener click on canvas
 
+      $('#distance').on('keyup',function(e){
+
+        if((e.keyCode < 47 && e.keyCode !== 8) || (e.keyCode > 57 && e.keyCode !== 8)) return false
+
+        self.removeAllCircles()
+        self.setRadiusOverlay(self.markers[0])
+
+      })
+
       cb && cb()
     }
 
@@ -250,10 +259,21 @@ $(document).ready(function(){
 
       for (var i = 0,j = this.markers.length; i < j; i++){
         this.markers[i].setMap(null)
+      }
+
+      this.markers = []
+
+      cb && cb()
+
+    }
+
+    GoogleMap.prototype.removeAllCircles = function(cb){
+
+      for (var i = 0,j = this.markers.length; i < j; i++){
         this.circles[i].setMap(null)
       }
 
-      this.markers = this.circles = []
+      this.circles = []
 
       cb && cb()
 
@@ -286,6 +306,7 @@ $(document).ready(function(){
         if(status == google.maps.GeocoderStatus.OK){
 
           self.removeAllMarkers()
+          self.removeAllCircles()
 
           self.position = results[0].geometry.location
 
@@ -321,6 +342,7 @@ $(document).ready(function(){
 
     // Create the map module instance
     var googleMap = new GoogleMap()
+    
     googleMap.initialize()
 
   
@@ -498,11 +520,43 @@ $(document).ready(function(){
       method: couchdb.listAllDocs,
       args: ['list-all-couchdb-docs']
     })
-
     
   }
 
   /* End Show Me  ************************************************/
 
+  /* PubSub  *****************************************************/
+    
+  function PubSub(){
+      this._topics = {}
+  }
+
+  PubSub.prototype.sub = function sub( topic, fn ){
+
+      var listeners = this._topics[ topic ] || (this._topics[ topic ] = [])
+
+      listeners.push( fn )
+  }
+
+  PubSub.prototype.pub = function pub(data){
+
+    var topic = data.topic
+
+    var listeners = this._topics[ topic ]
+      , len = listeners.length
+      , scope = scope || this
+      ;
+
+    if(typeof data !== 'object') data = { data: data }
+
+    data.scope = scope
+
+    for (var i = 0, l = listeners.length; i < l; i++ ){
+      listeners[ i ].call( this, data );
+    }
+
+  }
+
+  pubsub = new PubSub()
   
 }) // end DOM ready
