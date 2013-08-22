@@ -386,8 +386,23 @@ $(document).ready(function(){
     }
 
     else if(msg.type && (msg.type == 'list-all-couchdb-docs') ){
+      
       console.dir(msg.data)
-      return render.allCouchDbDocs( $('#name_of_folder'), msg.data )
+      
+      couchdb.data = msg.data
+      
+      render.allCouchDbDocs( $('#name_of_folder'), couchdb.data )
+      
+      render.updateCurrentFolder( $('#name_of_folder'), couchdb.data )
+      
+      couchdb.fetchDocumentData( couchdb.data.rows[0].id, 'get-couchdb-doc-data' )
+    }
+
+    else if(msg.type && (msg.type == 'get-couchdb-doc-data') ){
+
+      console.dir(msg.data)
+
+      render.couchDbDocument($('#instagram-photos-container'), msg.data)
     }
 
     else log(msg.data)
@@ -457,16 +472,19 @@ $(document).ready(function(){
   /* CouchDB Module *********************************************/
 
   var CouchDB = function(){
-  
-    
+ 
     (function(){
       
     })()
     
     return {
+      data: {}, // pull from local storage? probably stale...
       listAllDocs: function(socketMsgId){
         // console.log('listing all docs with id: %s', socketMsgId)
         socket.send(JSON.stringify( { type: socketMsgId } ))
+      },
+      fetchDocumentData: function(docName, socketMsgId){
+        socket.send(JSON.stringify( { data: docName, type: socketMsgId } ))
       }
     }
   } // end CouchDB
@@ -482,6 +500,7 @@ $(document).ready(function(){
   
     var _instagramThumbsTemplate
       , _allCouchDbDocsTemplate
+      , _couchDbDocTemplate
     
     (function(){
       // prefetch handlebars templates
@@ -492,7 +511,12 @@ $(document).ready(function(){
       $.get('/templates/list-all-couchdb-docs.hbs', function(data){
         _allCouchDbDocsTemplate = Handlebars.compile(data)
       })
+
+      $.get('/templates/display-couchdb-doc-data.hbs', function(data){
+        _couchDbDocTemplate = Handlebars.compile(data)
+      })
       
+
     })()
     
     return {
@@ -501,7 +525,17 @@ $(document).ready(function(){
        },
       allCouchDbDocs: function($element, data){
         $element.html( _allCouchDbDocsTemplate( data ) )
-       }
+       },
+      updateCurrentFolder: function( $element, val ){
+        $element[0]._currentId = val
+      },
+      couchDbDocument: function($element, data, cb){
+        // Let's reverse the data so the latest photo is first.
+        data.data = data.data.reverse()
+        $element.html( _couchDbDocTemplate( data ) )
+        cb && cb()
+      }
+
       }
   } // end Render
 
@@ -519,6 +553,15 @@ $(document).ready(function(){
     socketInitArray.push({
       method: couchdb.listAllDocs,
       args: ['list-all-couchdb-docs']
+    })
+
+    $('#name_of_folder').on('change', function(e){
+      if(this._currentId === this.options[this.selectedIndex].value ) return
+
+      render.updateCurrentFolder($(this), this.options[this.selectedIndex].value)
+
+      couchdb.fetchDocumentData( this.options[this.selectedIndex].value, 'get-couchdb-doc-data' )
+
     })
     
   }

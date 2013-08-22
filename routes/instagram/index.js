@@ -70,6 +70,8 @@ function fetchAllDocs(cb){
 
 }
 
+exports.fetchFromCouch = fetchFromCouch
+
 exports.fetchAllDocs = fetchAllDocs
 
 

@@ -100,6 +100,23 @@ io.on('connection', function(socket){
 
     }
 
+    // if we're fetching an individual doc...
+    if(v.type && (v.type == 'get-couchdb-doc-data')){
+
+      instagram_routes.fetchFromCouch(v.data, function(err,data){
+
+        if(err){
+          console.error(err)
+          socket.send(JSON.stringify({data:err,type:v.type,error:true}))
+        }
+        else {
+          // console.log(data)
+          socket.send(JSON.stringify({data:data,type:v.type}))
+        }
+      
+      }) // end fetchAllDocs()
+
+    }
 
   	if(v == 'ping'){ socket.send('pong')}
 
