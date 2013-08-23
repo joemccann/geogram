@@ -192,7 +192,8 @@ $(document).ready(function(){
       }) // end click()
 
       $address.on('blur', function(e){
-        self.codeAddress()
+        if(!this.value) return false
+        else return self.codeAddress()
       }) // end click()
 
 
@@ -384,6 +385,11 @@ $(document).ready(function(){
 
   socket.onclose = function(){
     log("socket closed")
+
+    // Drastically improve this.
+    alert('Reloading page due to socket disconnect.')
+    window.location.reload()
+
   }
 
   socket.onmessage = function(msg){

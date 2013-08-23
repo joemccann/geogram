@@ -5,11 +5,15 @@
 
 var express = require('express')
   , routes = require('./routes')
+  , mainApp = require('./routes/main')
   , path = require('path')
   , qs = require('querystring')
   , app = express(app)
   , server = require('http').createServer(app)
   , io = require('engine.io').attach(server)
+  , Jobber = require(path.resolve(__dirname, 'plugins/jobber/jobber.js'))
+  , jobber
+  , webSocketReference
   ;
 
 // all environments
@@ -45,16 +49,13 @@ if ('development' == app.get('env')) {
 // Core routes
 app.get('/', routes.index)
 
-
 app.get('/showme', routes.showme)
 
-
-// Instagram routes
-var instagram_routes = require('./routes/instagram')
-
-app.post('/search/geo', instagram_routes.search_geo_post)
+app.post('/search/geo', mainApp.search_geo_post)
 
 io.on('connection', function(socket){
+
+  webSocketReference = socket
 
   socket.on('message', function(v){
   	
@@ -67,7 +68,30 @@ io.on('connection', function(socket){
 
 			var d = qs.parse(v.data)
 
-			instagram_routes.realtime_search_geo(d,socket,v.type,function(err,data){
+      // Add ID here for each unique job
+      if(d.minUTC || d.maxUTC){
+
+        // we stringify it back so the qs params are a single unique string
+        var uniqueJobId = jobber.createUniqueJobId(qs.stringify(d))
+
+        // Check to see if job exists
+        jobber.doesJobExist(uniqueJobId,function doesJobExistCb(err,data){
+
+          if(err) return console.error(err)
+
+          jobber.createJob(d,uniqueJobId,function createJobCb(err,data){
+
+            if(err) return console.error(err)
+
+            else console.log(data || "Job created for id %s".green, uniqueJobId)
+
+          }) // end createJob()
+
+        }) // end doesJobExist
+
+      }
+
+			mainApp.realtime_search_geo(d,socket,v.type,function realtime_search_geoCb(err,data){
 
 				if(err){
 					console.error(err)
@@ -85,7 +109,7 @@ io.on('connection', function(socket){
     // if we're fetching a list of all couchdb docs...
     if(v.type && (v.type == 'list-all-couchdb-docs')){
 
-      instagram_routes.fetchAllDocs(function(err,data){
+      mainApp.fetchAllDocs(function(err,data){
 
         if(err){
           console.error(err)
@@ -103,7 +127,7 @@ io.on('connection', function(socket){
     // if we're fetching an individual doc...
     if(v.type && (v.type == 'get-couchdb-doc-data')){
 
-      instagram_routes.fetchFromCouch(v.data, function(err,data){
+      mainApp.fetchFromCouch(v.data, function(err,data){
 
         if(err){
           console.error(err)
@@ -127,9 +151,15 @@ io.on('connection', function(socket){
 
 
 server.listen(process.env.PORT || 3030, function(){
-  console.log('\033[96mlistening on localhost:3030 \033[39m');
-  console.log("http://127.0.0.1:" + app.get('port'))
+
+  console.log("\033[96m\nhttp://127.0.0.1:" + app.get('port') +"\033[96m\n")
+
+  jobber = new Jobber(mainApp, webSocketReference)
+
+  jobber.initializeJobs()
+
 });
+
 
 
 // Dirty

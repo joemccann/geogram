@@ -70,11 +70,6 @@ function fetchAllDocs(cb){
 
 }
 
-exports.fetchFromCouch = fetchFromCouch
-
-exports.fetchAllDocs = fetchAllDocs
-
-
 
 /**
  * Removes dupes from an array
@@ -148,8 +143,8 @@ exports.realtime_search_geo = function(clientData,socket,wsType,cb){
       // Store the data
       return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
         cb && cb(null,originalJson)
-        var uuid = originalJson.data[0].id
-        looper(clientData,uuid,socket,wsType,30000) // 30 seconds
+        // var uuid = originalJson.data[0].id
+        // looper(clientData,uuid,socket,wsType,30000) // 30 seconds
       }) // end storeInstagramData()
 
     } // else
@@ -237,18 +232,8 @@ exports.search_geo_post = function(req,res){
   
 } // end search_geo_post route
 
-exports.create_geogram_job = function (req,res){
-  // Start date, end date, lat, lon, radius, folder name
-  if(!req.body.latitude || !req.body.longitude) {
-    res.type('text/plain')
-    return res.status(403).send("Bad Request. You need a latitude and longitude.")
-  }
+exports.getHeadFromCouch = getHeadFromCouch
 
-  // Determine if in past...
+exports.fetchFromCouch = fetchFromCouch
 
-  // Determine if indefinite...
-
-  // Determine if in future...
-
-  // Determine if right now
-}
+exports.fetchAllDocs = fetchAllDocs
