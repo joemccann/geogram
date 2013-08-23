@@ -76,18 +76,27 @@ io.on('connection', function(socket){
         // we stringify it back so the qs params are a single unique string
         var uniqueJobId = jobber.createUniqueJobId(qs.stringify(d))
 
-        console.log(uniqueJobId + " is the uniqueJobId")
-
         // Check to see if job exists
         jobber.doesJobExist(uniqueJobId,function doesJobExistCb(err,data){
 
+          // TODO:  Should we inform the user at this point 
+          //        that the job already exists?
           if(err) return console.error(err)
 
           jobber.createJob(d,uniqueJobId,function createJobCb(err,data){
 
             if(err) return console.error(err)
 
-            else console.log("Job created for id ".green + uniqueJobId.yellow)
+            else {
+              console.log("Job created for id ".green + uniqueJobId.yellow)
+
+              jobber.addJobToDb(d,uniqueJobId,function addJobToDbCb(err,data){
+                if(err) return console.error(err)
+                console.log("Successfully added job to db.")
+                return console.log(data)
+              }) // addJobToDb
+
+            } // end else createJob()
 
           }) // end createJob()
 

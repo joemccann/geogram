@@ -37,11 +37,12 @@ function getHeadFromCouch(docName,cb){
  * Writes the json content to couchdb
  * @param {String} docName, The name of the document to be stored
  * @param {String} json, The data to be written, in JSON format
+ * @param {Function} cb, Callback function to be executed
  */
-function stashInCouch(docName,json){
+function stashInCouch(docName,json,cb){
   geogramdb.insert(json, docName, function(err, body) {
-    if(err) console.error(err)
-    else console.log("Stashed a document in CouchDB successfully.")
+    if(err) cb(err)
+    else cb(null,body)
   })
 }
 
@@ -92,9 +93,11 @@ function storeInstagramData(folderName,json,cb){
     // If there's an error, it means there is no doc by that name.
     if(err && err.status_code === 404) {
       // console.error(err)
-      stashInCouch(folderName, json)
-      cb && cb(null, "Created initial doc in couchdb.")
-      return
+      return stashInCouch(folderName, json,function(err,data){
+        if(cb && err) cb(err)
+        cb && cb(null, "Created initial doc in couchdb.")
+      })
+      
     }
 
     return fetchFromCouch(folderName, function(err,couchJson){
@@ -112,8 +115,9 @@ function storeInstagramData(folderName,json,cb){
       console.log(couchJson.data.length + " is len of unique objects.")
 
       // Store the data
-      stashInCouch(folderName, couchJson)
-      cb && cb(null,"Updated %s document.", folderName)
+      stashInCouch(folderName, couchJson, function(err,data){
+        cb && cb(null,"Updated %s document.", folderName)
+      })
       return 
 
     }) // end fetchFromCouch()
@@ -188,7 +192,10 @@ function looper(clientData,uuid,socket,wsId,timer){
             socket.send(JSON.stringify({data:originalJson,type:wsId}))
           }
 
-          return storeInstagramData(clientData.name_of_folder, originalJson)
+          return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
+            if(err) return console.error(err)
+              return console.dir(data)
+          })
 
         } // end inner else
 
@@ -233,6 +240,8 @@ exports.search_geo_post = function(req,res){
 } // end search_geo_post route
 
 exports.getHeadFromCouch = getHeadFromCouch
+
+exports.stashInCouch = stashInCouch
 
 exports.fetchFromCouch = fetchFromCouch
 

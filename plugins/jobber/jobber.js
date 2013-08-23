@@ -1,5 +1,8 @@
 require('date-utils')
+
 var _ = require('lodash')
+  , crypto = require('crypto')
+  ;
 
 /**
  * Constructor
@@ -18,20 +21,22 @@ var Jobber = function(mainAppReference, webSocketReference){
  */
 Jobber.prototype.initializeJobs = function(){
 
+  var self = this
+
   console.info("Initializing Jobs...".yellow)
 
-  this.mainAppReference.fetchFromCouch(this.jobsDocNameInDb,function(err,data){
+  self.mainAppReference.fetchFromCouch(self.jobsDocNameInDb,function(err,data){
     
     if(err) return console.error(err)
 
-    if(!data.queue.length) return console.info("No jobs to do!".yellow)
+    if(!data.queue.length) return console.info("\nNo jobs to do!".yellow)
     
     // Cycle through jobs, firing them off
-    console.info("We have "+data.queue.length+" jobs to do.".red)
+    console.info("We have ".red +data.queue.length+" jobs to do.".red)
 
-    this.jobs = data.queue
+    self.jobs = data.queue
 
-    this.processAllJobs()
+    self.processAllJobs()
 
   }) // end fetchAllJobs()
 
@@ -46,7 +51,7 @@ Jobber.prototype.processAllJobs = function(cb){
 
   var self = this
 
-  this.queue.forEach(function(el){
+  self.jobs.forEach(function(el){
 
     // Make sure job hasn't expired...
     if( !self.isDateInPastUTC(el.maxUTC) ){
@@ -127,13 +132,44 @@ Jobber.prototype.createJob = function(config,uuid,cb){
 
 }
 
+Jobber.prototype.addJobToDb = function(config,uuid,cb){
+
+  var self = this
+
+  // Fetch the jobs queue doc from couch
+
+  self.mainAppReference.fetchFromCouch(self.jobsDocNameInDb,function(err,data){
+    
+    if(err) return cb(err)
+
+    // add uuid to config object
+    config.jobId = uuid
+
+    // push it into the queue
+    data.queue.push(config)
+
+    // Now stash it in the couch
+    self.mainAppReference.stashInCouch(self.jobsDocNameInDb,data,function(err,body){
+      
+      if(err) return cb(err)
+      return cb(null,body)
+
+    }) // end fetchAllJobs()
+
+
+  }) // end fetchAllJobs()
+
+}
+
 /**
  * Creates a unique job id.
  * @param {String} str, Unique string of querystring params
  * @return {String} hash, Unique hash
  */
 Jobber.prototype.createUniqueJobId = function(str){
-	return new Buffer(str).toString('base64')
+  var sum = crypto.createHash('md5')
+  sum.update(str)
+  return sum.digest('hex')
 }
 
 /**
@@ -141,6 +177,8 @@ Jobber.prototype.createUniqueJobId = function(str){
  * @param {Function} cb, Callback function to be executed
  */
 Jobber.prototype.processJob = function(config,cb){
+
+console.warn("proccesJob not implemented yet")
 
 /*
 function looper(clientData,uuid,socket,wsId,timer){
