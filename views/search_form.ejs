@@ -1,31 +1,62 @@
-  <div id="search-form-container">
+  <div class="thirtyfour inline-block aligntop">
+
     <form class="styled-form" id="search-form" action="/search/geo" enctype="application/x-www-form-urlencoded" method="post">
+
+    
       <fieldset>
+
+
         <div class="form-item">
-          <label for="name_of_folder">Folder Name</label>
-          <input type='text' class="topcoat-text-input--large full" name='name_of_folder' id="name_of_folder" value='My Geogram Folder' placholder="My Geogram Folder">
+          <p>Enter The Event's Address</p>
+          <label for="address">&nbsp;</label>
+          <input type="text" name="address" id="address" value="" placeholder="640 Johnson Avenue, Brooklyn, NY" class="topcoat-text-input--large full">
         </div>
-        <div class="form-item">
-        	<label for="latitude">Latitude</label>
-		      <input type='text' class="topcoat-text-input--large full" name='latitude' id="latitude" value='40.762485' placholder="40.762485">
+
+<!--         <div class="form-item">
+          <button id="geocode-button" class="topcoat-button--large--cta full">
+            Get GPS Location</button>
         </div>
+ -->
+        <hr>
+
         <div class="form-item">
-        	<label for="longitude">Longitude</label>
-		      <input type='text' class="topcoat-text-input--large full" name='longitude' id="longitude" value='-73.997513' placholder="-73.997513">
+          <p>Give Your Event a Name</p>
+          <label for="name_of_folder">&nbsp;</label>
+          <input type='text' class="topcoat-text-input--large full" name='name_of_folder' id="name_of_folder" value="" placeholder='Rave in Brooklyn'>
         </div>
+
+        <hr>
+
         <div class="form-item">
-          <label for="minUTC">Beginning Date and Time</label>
+          <p>Enter Your Search Radius In Meters</p>
+          <label for="distance">&nbsp;</label>
+          <input type='text' value="" class="topcoat-text-input--large full" name='distance' id="distance"  placeholder="250">
+        </div>
+
+        <hr>
+
+        <div class="none">
+          <div class="form-item">         
+            <label for="latitude">Latitude</label>
+            <input type='text' class="topcoat-text-input--large full" name='latitude' id="latitude" value='' placeholder="40.762485">
+          </div>
+          <div class="form-item">
+            <label for="longitude">Longitude</label>
+            <input type='text' class="topcoat-text-input--large full" name='longitude' id="longitude" value='' placeholder="-73.997513">
+          </div>
+        </div>
+
+        <div class="form-item">
+          <p>Event In The Future? Set The Dates Here&nbsp;</p>
+          <label class="showcopylabel" for="minUTC"><span class="small">Beginning</span></label>
           <input type='date' class="topcoat-text-input--large full" name='minUTC' id="minUTC" value='' placholder="">
         </div>
         <div class="form-item">
-          <label for="maxUTC">End Date and Time</label>
+          <label for="maxUTC"><span class="small">End</span></label>
           <input type='date' class="topcoat-text-input--large full" name='maxUTC' id="maxUTC" value='' placholder="">
         </div>
-        <div class="form-item">
-        	<label for="distance">Search Radius (in meters)</label>
-		      <input type='text' class="topcoat-text-input--large full" name='distance' id="distance" value='100' placholder="100">
-        </div>
-        <div class="form-item">
+
+        <div class="form-item last">
           <button id="search-button" class="topcoat-button--large--cta full">Get Geograms</button>
         </div>
       </fieldset>

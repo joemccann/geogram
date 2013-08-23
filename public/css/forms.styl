@@ -8,7 +8,7 @@
   -moz-border-radius: 1px;
   -webkit-border-radius: 1px;
   border-radius: 1px;
-  padding 3.25%
+  padding 0% 5% 5%
 
 fieldset
   border none
@@ -16,31 +16,27 @@ fieldset
   background transparent
   padding 0
 
-
-normPlaceholdercolor($black, Source Sans, Helvetica, Arial, sans-serif)
+normPlaceholdercolor($grey, Source Sans, Helvetica, Arial, sans-serif)
 
 label
   display block
 
 #address-form-container
-  width 100%
   display block
-  margin 1% 0
+  margin 1.5% 0 2%
   max-width 880px
 
 #search-form-container
-  display inline-block
-  width 100%
-  max-width 360px
   vertical-align top
-  width 26%
+
+.form-item.first
+  margin 0% auto 2%
 
 .form-item
-  padding 3.5% 0
-  margin 0 auto
+  margin 4.5% auto
 
-.form-item:last-child
-  margin 0% auto 2%
+.form-item.last
+  margin 3.5% auto 0
 
 form .error
   border $red 4px solid

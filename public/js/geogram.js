@@ -67,6 +67,7 @@ $(document).ready(function(){
   
   var $form = $('#search-form')
     , $button = $('#search-button')
+    , $address = $('#address')
     
   if($form.length){
 
@@ -141,7 +142,8 @@ $(document).ready(function(){
     }
 
     GoogleMap.prototype.geoSuccess = function(position,cb){
-      this.position = position
+      this.position.latitude = position.latitude
+      this.position.longitude = position.longitude
       cb && cb()
     }
 
@@ -189,6 +191,10 @@ $(document).ready(function(){
         return false
       }) // end click()
 
+      $address.on('blur', function(e){
+        self.codeAddress()
+      }) // end click()
+
 
       // Listen for click event on infomarker  
       google.maps.event.addListener(marker, 'click', function(event) {
@@ -207,6 +213,7 @@ $(document).ready(function(){
         self.updateInputValues()
 
         self.removeAllMarkers()
+        self.removeAllCircles()
 
         var marker = new google.maps.Marker({position: event.latLng, map: self.map})
 
@@ -231,17 +238,21 @@ $(document).ready(function(){
     }
 
     GoogleMap.prototype.updateInputValues = function(cb){
-      $('#latitude').val(this.position.latitude)
-      $('#longitude').val(this.position.longitude)
+      $('#latitude').val( this.position.latitude )
+      $('#longitude').val( this.position.longitude )
       cb && cb()
     }
 
     GoogleMap.prototype.setRadiusOverlay = function(marker,cb){
+
+      var distance = $('#distance').val()
+
+      if(!distance) return
       
       // Add circle overlay and bind to marker
       var circle = new google.maps.Circle({
         map: this.map,
-        radius: parseInt( $('#distance').val() ),    // 100 metres
+        radius: parseInt( distance ),    // 100 metres
         fillColor: '#AA0000',
         strokeColor: '#FF0000',
         strokeOpacity: 0.8,
@@ -257,6 +268,8 @@ $(document).ready(function(){
     
     GoogleMap.prototype.removeAllMarkers = function(cb){
 
+      if(!this.markers.length) return 
+
       for (var i = 0,j = this.markers.length; i < j; i++){
         this.markers[i].setMap(null)
       }
@@ -269,7 +282,9 @@ $(document).ready(function(){
 
     GoogleMap.prototype.removeAllCircles = function(cb){
 
-      for (var i = 0,j = this.markers.length; i < j; i++){
+      if(!this.circles.length) return 
+
+      for (var i = 0,j = this.circles.length; i < j; i++){
         this.circles[i].setMap(null)
       }
 
@@ -308,16 +323,18 @@ $(document).ready(function(){
           self.removeAllMarkers()
           self.removeAllCircles()
 
-          self.position = results[0].geometry.location
+          self.position.latitude = results[0].geometry.location.mb
+          self.position.longitude = results[0].geometry.location.nb
 
-          self.map.setCenter(self.position)
+          self.map.setCenter(results[0].geometry.location)
           
           var marker = new google.maps.Marker({
               map: self.map,
-              position: self.position
+              position: results[0].geometry.location
           })
 
           self.updateInputValues()
+          self.markers.push(marker)
           self.setRadiusOverlay(marker)
 
         }
@@ -326,8 +343,8 @@ $(document).ready(function(){
 
     } // end codeAddress
       
-    $('#address').on('focus', toggleOriginalValue) 
-    $('#address').on('blur', toggleOriginalValue) 
+    // $('#address').on('focus', toggleOriginalValue) 
+    // $('#address').on('blur', toggleOriginalValue) 
 
 
     // toggle between an element's original value and blank
@@ -341,7 +358,7 @@ $(document).ready(function(){
     }
 
     // Create the map module instance
-    var googleMap = new GoogleMap()
+    window.googleMap = new GoogleMap()
     
     googleMap.initialize()
 
@@ -387,7 +404,7 @@ $(document).ready(function(){
 
     else if(msg.type && (msg.type == 'list-all-couchdb-docs') ){
       
-      console.dir(msg.data)
+      // console.dir(msg.data)
       
       couchdb.data = msg.data
       
@@ -400,7 +417,7 @@ $(document).ready(function(){
 
     else if(msg.type && (msg.type == 'get-couchdb-doc-data') ){
 
-      console.dir(msg.data)
+      // console.dir(msg.data)
 
       render.couchDbDocument($('#instagram-photos-container'), msg.data)
     }

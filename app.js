@@ -118,6 +118,7 @@ io.on('connection', function(socket){
 
     }
 
+    // Just a friendly game of...
   	if(v == 'ping'){ socket.send('pong')}
 
   }) // end onmessage

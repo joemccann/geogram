@@ -225,6 +225,7 @@ li {
 header {
   position: relative;
   overflow: hidden;
+  margin-bottom: 1%;
 }
 footer {
   background-color: #1a1a1a;
@@ -244,7 +245,7 @@ footer p {
 #map-canvas {
   width: 100%;
   height: 100%;
-  min-height: 480px;
+  min-height: 693px;
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -259,19 +260,19 @@ footer p {
   -webkit-box-shadow: inset 0 1px rgba(0,0,0,0.12);
   box-shadow: inset 0 1px rgba(0,0,0,0.12);
 }
+#logo-container {
+  display: inline-block;
+}
 #map-canvas img {
   max-width: none;
 }
 #maps-container {
-  width: 100%;
   height: 100%;
   overflow: auto;
-  min-height: 480px;
 }
 #results-container {
   margin: 1% auto;
   vertical-align: top;
-  width: 100%;
 }
 #instagram-photos-container {
   display: inline-block;
@@ -279,15 +280,10 @@ footer p {
   overflow: scroll;
   height: 605px;
   vertical-align: top;
-  width: 100%;
   margin: 1% auto;
 }
 #instagram-photos-container ul li {
   display: inline;
-}
-#logo-container {
-  display: inline-block;
-  width: 100%;
 }
 #sync-with-dropbox {
   float: right;
@@ -303,11 +299,23 @@ footer p {
   text-align: left;
   float: left;
 }
+.showcopylabel {
+  margin-top: 3.5%;
+}
+.aligntop {
+  vertical-align: top;
+}
 .instagram-list {
   padding: 2% 0;
 }
 .block {
   display: block;
+}
+.none {
+  display: none;
+}
+.inline-block {
+  display: inline-block;
 }
 .red {
   color: #fc0404;
@@ -336,6 +344,24 @@ footer p {
   font-size: 300%;
   line-height: 0;
 }
+.ninety {
+  width: 90%;
+}
+.ten {
+  width: 90%;
+}
+.sixtyfive {
+  width: 65%;
+}
+.sixtyfour {
+  width: 64%;
+}
+.thirtyfive {
+  width: 35%;
+}
+.thirtyfour {
+  width: 34%;
+}
 .opacity75 {
   -khtml-opacity: 0.75;
   -moz-opacity: 0.75;
@@ -349,10 +375,8 @@ footer p {
   font-size: 1.125em;
 }
 .maxwidthcenter {
-  width: 96%;
   max-width: 940px;
   margin: 0 auto;
-  padding: 0 2%;
 }
 .justify {
   text-align: justify;
@@ -380,7 +404,7 @@ footer p {
   -moz-border-radius: 1px;
   -webkit-border-radius: 1px;
   border-radius: 1px;
-  padding: 3.25%;
+  padding: 0% 5% 5%;
 }
 fieldset {
   border: none;
@@ -389,19 +413,19 @@ fieldset {
   padding: 0;
 }
 ::-webkit-input-placeholder {
-  color: #000;
+  color: #939393;
   font-family: Source Sans;
 }
 :-moz-placeholder {
-  color: #000;
+  color: #939393;
   font-family: Source Sans;
 }
 ::-moz-placeholder {
-  color: #000;
+  color: #939393;
   font-family: Source Sans;
 }
 :-ms-input-placeholder {
-  color: #000;
+  color: #939393;
   font-family: Source Sans;
 }
 [type="text"],
@@ -416,24 +440,21 @@ label {
   display: block;
 }
 #address-form-container {
-  width: 100%;
   display: block;
-  margin: 1% 0;
+  margin: 1.5% 0 2%;
   max-width: 880px;
 }
 #search-form-container {
-  display: inline-block;
-  width: 100%;
-  max-width: 360px;
   vertical-align: top;
-  width: 26%;
+}
+.form-item.first {
+  margin: 0% auto 2%;
 }
 .form-item {
-  padding: 3.5% 0;
-  margin: 0 auto;
+  margin: 4.5% auto;
 }
-.form-item:last-child {
-  margin: 0% auto 2%;
+.form-item.last {
+  margin: 3.5% auto 0;
 }
 form .error {
   border: #fc0404 4px solid;
