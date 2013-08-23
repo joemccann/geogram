@@ -2,6 +2,17 @@ $(document).ready(function(){
   
   log('Ready...')
 
+  // For debugging only
+  if(location.hash.match(/^#debug$/)){
+    // Prepopulate value
+    log('We are debugging...')
+    $('#name_of_folder').val('debug')
+    $('#distance').val(500)
+    // fix these to be dynamic...
+    $('#minUTC').val("2013-08-23")
+    $('#maxUTC').val("2013-08-24")
+  }
+
   var render
     , couchdb
     , socket
@@ -63,11 +74,23 @@ $(document).ready(function(){
   }
 
 
+  /**
+   * Utility method to return the current client's timezone offset in hours.
+   *
+   * @return {Number}
+   */
+  function getTimeZoneOffsetInHours(){
+    return (new Date().getTimezoneOffset()) / 60
+  }
+
   /* Handle Search Form ****************************************/
   
   var $form = $('#search-form')
     , $button = $('#search-button')
     , $address = $('#address')
+
+  // We have to set this no matter what.
+  $('#timezoneOffset').val( getTimeZoneOffsetInHours() )
     
   if($form.length){
 
@@ -124,6 +147,9 @@ $(document).ready(function(){
         navigator.geolocation.getCurrentPosition(function(position){
 
           self.geoSuccess(position.coords,function(){
+
+            self.updateInputValues()
+
             self.createMap(null,function(mark){
               self.bindEvents(mark)
             })
@@ -132,6 +158,9 @@ $(document).ready(function(){
         }, function(err){
 
           self.geoError(err || new Error('Geo not allowed by user.'),function(){
+
+            self.updateInputValues()
+
             self.createMap(null,function(mark){
               self.bindEvents(mark)
             })
@@ -387,8 +416,8 @@ $(document).ready(function(){
     log("socket closed")
 
     // Drastically improve this.
-    alert('Reloading page due to socket disconnect.')
-    window.location.reload()
+    // alert('Reload page due to socket disconnect.')
+    // window.location.reload()
 
   }
 

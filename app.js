@@ -68,11 +68,15 @@ io.on('connection', function(socket){
 
 			var d = qs.parse(v.data)
 
+      // console.dir(d)
+
       // Add ID here for each unique job
       if(d.minUTC || d.maxUTC){
 
         // we stringify it back so the qs params are a single unique string
         var uniqueJobId = jobber.createUniqueJobId(qs.stringify(d))
+
+        console.log(uniqueJobId + " is the uniqueJobId")
 
         // Check to see if job exists
         jobber.doesJobExist(uniqueJobId,function doesJobExistCb(err,data){
@@ -83,7 +87,7 @@ io.on('connection', function(socket){
 
             if(err) return console.error(err)
 
-            else console.log(data || "Job created for id %s".green, uniqueJobId)
+            else console.log("Job created for id ".green + uniqueJobId.yellow)
 
           }) // end createJob()
 

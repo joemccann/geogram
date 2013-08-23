@@ -5,6 +5,7 @@
     
       <fieldset>
 
+        <input type="hidden" name="timezoneOffset" id="timezoneOffset" value="">
 
         <div class="form-item">
           <p>Enter The Event's Address</p>
@@ -22,7 +23,7 @@
         <div class="form-item">
           <p>Give Your Event a Name</p>
           <label for="name_of_folder">&nbsp;</label>
-          <input type='text' class="topcoat-text-input--large full" name='name_of_folder' id="name_of_folder" value="" placeholder='Rave in Brooklyn'>
+          <input required type='text' class="topcoat-text-input--large full" name='name_of_folder' id="name_of_folder" value="" placeholder='Rave in Brooklyn'>
         </div>
 
         <hr>
@@ -30,7 +31,7 @@
         <div class="form-item">
           <p>Enter Your Search Radius In Meters</p>
           <label for="distance">&nbsp;</label>
-          <input type='text' value="" class="topcoat-text-input--large full" name='distance' id="distance"  placeholder="250">
+          <input required type='text' value="" class="topcoat-text-input--large full" name='distance' id="distance"  placeholder="250">
         </div>
 
         <hr>

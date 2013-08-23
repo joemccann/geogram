@@ -1,5 +1,5 @@
 require('date-utils')
-var _ = require('lo-dash')
+var _ = require('lodash')
 
 /**
  * Constructor
@@ -70,52 +70,60 @@ Jobber.prototype.processAllJobs = function(cb){
  */
 Jobber.prototype.doesJobExist = function(jobId,cb){
 
-  this.mainAppReference.fetchFromCouch(this.jobsDocNameInDb,function(err,data){
+  this.mainAppReference.fetchFromCouch(this.jobsDocNameInDb,function fetchFromCouchCb(err,data){
 
-  	if(!data.queue.length) return false
+    if(err) return cb(err)
 
-  	return !!_.where(data.queue, {'jobId': jobId })
+    if( (_.where(data.queue, {'jobId': jobId })).length ) return cb(new Error("Job already exists."))
+
+    else return cb(null)
 
   })
 
 }
 
 /**
- * Creates a new job.
+ * Creates a new job.  Does a bit of time/date checking to validate job
+ * Instagram currently doesn't allow us to run jobs in the past (only returns
+ * 20 images for geofenced searches in the past).
  * @param {Object} config, Configuration object with params for job
  * @param {String} uuid, unique job id
  * @param {Function} cb, Callback function to be executed
  */
 Jobber.prototype.createJob = function(config,uuid,cb){
 
-	config = {
-		jobId: 'someUUID',
-		startTime: 'someUTC number',
-		endTime: 'someUTC number',
-		latitude: 'someLat number',
-		longitude: 'someLon number',
-		radius: 'some Radius number',
-		eventName: 'the name of the event/document',
-		method: 'some function'
-	}
+  var self = this
+
+  // console.dir(config)
+/*
+{ timezoneOffset: '4',
+  address: '',
+  name_of_folder: 'debug',
+  distance: '500',
+  latitude: '40.7142786',
+  longitude: '-74.010086',
+  minUTC: '2013-08-23',
+  maxUTC: '2013-08-24' }
+  */
+
+    config.timezoneOffset = parseInt(config.timezoneOffset) // Just because I'm paranoid
 
     // Make sure job isn't in past
-    if( self.isDateBeforeToday(el.minUTC) ) return cb(new Error('Start date is in the past.'))
-    if( self.isDateBeforeToday(el.maxUTC) ) return cb(new Error('End date is in the past.'))
+    if( self.isDateBeforeToday(config.minUTC,config.timezoneOffset) ) return cb(new Error('Start date is in the past.'))
+    if( self.isDateBeforeToday(config.maxUTC,config.timezoneOffset) ) return cb(new Error('End date is in the past.'))
 
-    // Make sure job start date isn't in past
-    if( self.isDateSameAsToday(el.maxUTC) ){
-			if( self.isDateSameAsToday(el.minUTC)) return cb(new Error('Start date is before today.'))
+    // Make sure job end date isn't in past
+    if( self.isDateSameAsToday(config.maxUTC,config.timezoneOffset) ){
+			if( self.isDateSameAsToday(config.minUTC,config.timezoneOffset)) 
+        return cb(new Error('Start date and end dates are same.'))
 			else{
 				// Let's do work!
-				console.info("This job %s will start and end today.", config.jobId)
+				console.info("This job %s will start and end today.", uuid)
 				return cb(null, "Not implemented yet.")
 			}
 		}
 
-    if( self.isDateSameAsToday(el.minUTC) || self.isDateSameAsToday(el.maxUTC) ) return cb(new Error('End date is in the past.'))
-
-		return cb(null, "Not implemented yet.")
+		return cb(null, "Not implemented yet but at the end.")
 
 }
 
@@ -124,7 +132,7 @@ Jobber.prototype.createJob = function(config,uuid,cb){
  * @param {String} str, Unique string of querystring params
  * @return {String} hash, Unique hash
  */
-Jobber.prototype.createJob = function(string){
+Jobber.prototype.createUniqueJobId = function(str){
 	return new Buffer(str).toString('base64')
 }
 
@@ -134,7 +142,7 @@ Jobber.prototype.createJob = function(string){
  */
 Jobber.prototype.processJob = function(config,cb){
 
-	/*
+/*
 function looper(clientData,uuid,socket,wsId,timer){
 
   var self = this
@@ -181,8 +189,7 @@ function looper(clientData,uuid,socket,wsId,timer){
   },timer)
 
 }
-
-	*/
+*/
 
 }
 
@@ -192,9 +199,17 @@ function looper(clientData,uuid,socket,wsId,timer){
  * @param {Number} utcTime, Unix Timestamp to be compared against
  * @return {Boolean}
  */
-Jobber.prototype.isDateBeforeToday = function(utcTime){
+Jobber.prototype.isDateBeforeToday = function(utcTime,utcOffset){
   // Grab current time and compare to incoming date
-  return Date.compare( new Date(utcTime), Date.today() ) === -1 ? true : false
+  // console.log(new Date(utcTime))
+  // console.log(Date.today())
+  var today = Date.today()
+  // We make negative because getTimezoneOffset() in browser will return
+  // positive number if behind UTC mean time
+  today.addHours(-utcOffset) 
+  // console.log(today)
+
+  return Date.compare( new Date(utcTime), today ) === -1 ? true : false
 }    
 
 
@@ -203,9 +218,14 @@ Jobber.prototype.isDateBeforeToday = function(utcTime){
  * @param {Number} utcTime, Unix Timestamp to be compared against
  * @return {Boolean}
  */
-Jobber.prototype.isDateSameAsToday = function(utcTime){
-  // Grab current time and compare to incoming date
-  return Date.compare( new Date(utcTime), Date.today() ) === 0 ? true : false
+Jobber.prototype.isDateSameAsToday = function(utcTime, utcOffset){
+
+  var today = Date.today()
+  // We make negative because getTimezoneOffset() in browser will return
+  // positive number if behind UTC mean time
+  today.addHours(-utcOffset) 
+
+  return Date.compare( new Date(utcTime), today ) === 0 ? true : false
 }    
 
 /**
@@ -213,9 +233,15 @@ Jobber.prototype.isDateSameAsToday = function(utcTime){
  * @param {Number} utcTime, Unix Timestamp to be compared against
  * @return {Boolean}
  */
-Jobber.prototype.isDateAfterToday = function(utcTime){
+Jobber.prototype.isDateAfterToday = function(utcTime,utcOffset){
   // Grab current time and compare to incoming date
-  return Date.compare( new Date(utcTime), Date.today() ) === 1 ? true : false
+
+  var today = Date.today()
+  // We make negative because getTimezoneOffset() in browser will return
+  // positive number if behind UTC mean time
+  today.addHours(-utcOffset) 
+
+  return Date.compare( new Date(utcTime), today ) === 1 ? true : false
 }   
 
 
