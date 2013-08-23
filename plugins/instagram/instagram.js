@@ -57,6 +57,8 @@ Geogram.prototype.executeGeoSearch = function(req,res,cb){
   // console.log(maxTimestamp + " is the maxUTC.")
   // console.log(distance + " is the distance.")
 
+  if(minTimestamp === maxTimestamp) minTimestamp = maxTimestamp = ''
+
   var config = {
     method: 'GET'
     , uri: this._buildGeoSearchUri(lat,lng,minTimestamp,maxTimestamp,distance)
@@ -92,6 +94,8 @@ Geogram.prototype.executeRealTimeGeoSearch = function(data,cb){
   // console.log(minTimestamp + " is the minUTC.")
   // console.log(maxTimestamp + " is the maxUTC.")
   // console.log(distance + " is the distance.")
+
+  if(minTimestamp === maxTimestamp) minTimestamp = maxTimestamp = ''
 
   var config = {
     method: 'GET'
