@@ -6,15 +6,41 @@ var express = require('express')
   , passport = require('passport')
   , qs = require('querystring')
   , app = express(app)
+  , colors = require("colors")
   , server = require('http').createServer(app)
   , io = require('engine.io').attach(server)
   , pathToInstagramConfig = require('./plugins/instagram/instagram-config.json')
+  , pathToRedisConfig = require('./plugins/redis/redis-config.json')
   , InstagramStrategy = require('passport-instagram').Strategy
   , instagram_config
   , Jobber = require(path.resolve(__dirname, 'plugins/jobber/jobber.js'))
   , jobber
   , webSocketReference
   ;
+
+var redis = require("redis")
+  , RedisStore = require('connect-redis')(express)
+
+var redisOptions = {
+  host:pathToRedisConfig.host,
+  port:pathToRedisConfig.port,
+  pass:pathToRedisConfig.pass,
+  auth:pathToRedisConfig.auth,
+  db: 'geogram-redis'
+}
+
+var redisClient = redis.createClient(redisOptions.port, redisOptions.host,{no_ready_check:true})
+
+redisClient.on("ready", function(){
+
+  redisClient.auth(redisOptions.auth, function (err) {
+      if (err) { throw err; }
+    console.info("You are now connected to your redis.".green)
+
+  })
+
+})
+
 
 // all environments
 
@@ -34,10 +60,18 @@ app.set('view engine', 'ejs')
 app.use(express.favicon())
 app.use(express.logger(app.locals.env === 'production' ? 'tiny' : 'dev' ))
 app.use(express.compress())
-app.use(express.cookieParser());
+
+app.use(express.cookieParser('geogram'));
+
+app.use(express.session({ store: new RedisStore({
+  client: redisClient,
+  port: redisOptions.port, 
+  host: redisOptions.host
+}), secret: 'geogram' }))
+
 app.use(express.bodyParser());
 app.use(express.methodOverride());
-app.use(express.session({ secret: 'geogram' }))
+
 // Initialize Passport!  Also use passport.session() middleware, to support
 // persistent login sessions (recommended).
 app.use(passport.initialize())
@@ -67,33 +101,30 @@ app.get('/login', function(req, res){
   res.render('login', { user: req.user });
 });
 
-// GET /auth/instagram
-//   Use passport.authenticate() as route middleware to authenticate the
-//   request.  The first step in Instagram authentication will involve
-//   redirecting the user to instagram.com.  After authorization, Instagram
-//   will redirect the user back to this application at /auth/instagram/callback
 app.get('/oauth/instagram',
   passport.authenticate('instagram'),
-  function(req, res){
-    // The request will be redirected to Instagram for authentication, so this
-    // function will not be called.
-  });
+  function(req, res){})
 
-// GET /auth/instagram/callback
-//   Use passport.authenticate() as route middleware to authenticate the
-//   request.  If authentication fails, the user will be redirected back to the
-//   login page.  Otherwise, the primary route function function will be called,
-//   which, in this example, will redirect the user to the home page.
 app.get('/oauth/instagram/callback', 
   passport.authenticate('instagram', { failureRedirect: '/login' }),
-  function(req, res) {
-    res.redirect('/');
-  });
+  function(req, res){
+    res.redirect('/')
+  })
 
+// TODO: implement this route
 app.get('/logout', function(req, res){
-  req.logout();
-  res.redirect('/');
-});
+  req.logout()
+  res.redirect('/')
+})
+
+// passport.use(new LocalStrategy(
+//   function(username, done){
+//     redis.
+//     User.findOne({ username: username, password: password }, function (err, user) {
+//       done(err, user);
+//     });
+//   }
+// ));
 
 //    Passport session setup.
 //    To support persistent login sessions, Passport needs to be able to
@@ -102,11 +133,16 @@ app.get('/logout', function(req, res){
 //    the user by ID when deserializing.  However, since this example does not
 //    have a database of user records, the complete Instagram profile is
 //    serialized and deserialized.
-passport.serializeUser(function(user, done) {
+passport.serializeUser(function(user, done){
+  // console.dir(user)
   done(null, user);
 });
 
-passport.deserializeUser(function(obj, done) {
+passport.deserializeUser(function(obj, done){
+  // console.dir(obj)
+  // Let's make the instagram data available to the UI
+  app.locals.instagram_profile = obj._json.data.profile_picture
+  app.locals.instagram_json = 'var instagramUser = '+JSON.stringify(obj._json.data) 
   done(null, obj);
 });
 
@@ -117,11 +153,12 @@ passport.deserializeUser(function(obj, done) {
 //    the request will proceed.  Otherwise, the user will be redirected to the
 //    login page.
 function ensureAuthenticated(req, res, next) {
+
   if (req.isAuthenticated()){
-    app.locals.show_modal = false
     return next() 
   }
   else{
+    // console.dir(req.session)
     app.locals.show_modal = true
     return next()
   }
