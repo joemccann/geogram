@@ -116,7 +116,7 @@ function storeInstagramData(folderName,json,cb){
 
       // Store the data
       stashInCouch(folderName, couchJson, function(err,data){
-        cb && cb(null,"Updated %s document.", folderName)
+        cb && cb(null,"Updated "+folderName+" document.")
       })
       return 
 
@@ -147,8 +147,8 @@ exports.realtime_search_geo = function(clientData,socket,wsType,cb){
       // Store the data
       return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
         cb && cb(null,originalJson)
-        // var uuid = originalJson.data[0].id
-        // looper(clientData,uuid,socket,wsType,30000) // 30 seconds
+        var uuid = originalJson.data[0].id
+        looper(clientData,uuid,socket,wsType,15000) // 30 seconds
       }) // end storeInstagramData()
 
     } // else
@@ -164,7 +164,7 @@ function looper(clientData,uuid,socket,wsId,timer){
 
   console.info("Interval started for ID %s".blue  , self.uuid)
 
-  var inter = setInterval(function (){
+  var inter = setInterval(function(){
 
     geogram.executeRealTimeGeoSearch(clientData,function(err,data){
 
@@ -207,37 +207,6 @@ function looper(clientData,uuid,socket,wsId,timer){
 
 }
 
-exports.search_geo_post = function(req,res){
-
-  if(!req.body.latitude || !req.body.longitude) {
-    res.type('text/plain')
-    return res.status(403).send("Bad Request. You need a latitude and longitude.")
-  }
-
-  // Execute it right away, then set interval on grabbing new ones.
-  geogram.executeGeoSearch(req,res,function(err,data){
-
-    if(err) {
-      console.error(err)
-      return res.status(500).json(err)
-    }
-
-    var originalJson = JSON.parse(data)
-
-    if (originalJson.meta.code === 400) return res.status(400).send(originalJson.meta.error_message)
-
-    // Check if data is empty, meaning, no images.
-    if(!originalJson.data.length) return res.status(400).send("No data. Probably a bad request.")
-    else res.json(data) 
-
-    // Store the data
-    storeInstagramData(req, req.body.name_of_folder, originalJson, function(){
-      startInterval(req,originalJson,30000) // 30 seconds
-    })
-
-  }) // end executeGeoSearch
-  
-} // end search_geo_post route
 
 exports.getHeadFromCouch = getHeadFromCouch
 

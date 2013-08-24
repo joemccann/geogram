@@ -91,6 +91,13 @@ if ('development' == app.get('env')) {
 // Core routes
 app.get('/', ensureAuthenticated, routes.index)
 
+app.post('/kill/looper', function(req,res){
+  var uuid = req.body.uuid
+  console.log('killing the looper with uuid', uuid)
+  res.send('done')
+})
+
+
 app.get('/showme', routes.showme)
 
 
@@ -118,29 +125,11 @@ app.get('/logout', function(req, res){
   res.redirect('/')
 })
 
-// passport.use(new LocalStrategy(
-//   function(username, done){
-//     redis.
-//     User.findOne({ username: username, password: password }, function (err, user) {
-//       done(err, user);
-//     });
-//   }
-// ));
-
-//    Passport session setup.
-//    To support persistent login sessions, Passport needs to be able to
-//    serialize users into and deserialize users out of the session.  Typically,
-//    this will be as simple as storing the user ID when serializing, and finding
-//    the user by ID when deserializing.  However, since this example does not
-//    have a database of user records, the complete Instagram profile is
-//    serialized and deserialized.
 passport.serializeUser(function(user, done){
-  // console.dir(user)
   done(null, user);
-});
+})
 
 passport.deserializeUser(function(obj, done){
-  // console.dir(obj)
   // Let's make the instagram data available to the UI
   app.locals.instagram_profile = obj._json.data.profile_picture
   app.locals.instagram_json = 'var instagramUser = '+JSON.stringify(obj._json.data) 
@@ -148,11 +137,6 @@ passport.deserializeUser(function(obj, done){
 });
 
 
-//    Simple route middleware to ensure user is authenticated.
-//    Use this route middleware on any resource that needs to be protected.  If
-//    the request is authenticated (typically via a persistent login session),
-//    the request will proceed.  Otherwise, the user will be redirected to the
-//    login page.
 function ensureAuthenticated(req, res, next) {
 
   if (req.isAuthenticated()){
@@ -167,7 +151,6 @@ function ensureAuthenticated(req, res, next) {
 }
 
 
-app.post('/search/geo', mainApp.search_geo_post)
 
 io.on('connection', function(socket){
 

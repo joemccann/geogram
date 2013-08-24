@@ -9,8 +9,8 @@ $(document).ready(function(){
     $('#name_of_folder').val('debug')
     $('#distance').val(500)
     // fix these to be dynamic...
-    $('#minUTC').val("2013-08-23")
-    $('#maxUTC').val("2013-08-24")
+    $('#minUTC').val("2013-08-24")
+    $('#maxUTC').val("2013-08-25")
   }
 
   var render
@@ -166,7 +166,23 @@ $(document).ready(function(){
     }
 
 
-  }
+  } // end if instagramUser
+
+  // We need to kill the websocket session/looper on backend on unload
+
+  // TODO: IMPLEMENT THIS KILL FUNCTION
+
+  $(window).unload(function(){
+    var uuidFromWebSocket = 'kljadsfkajlsdfweoij'
+    if(uuidFromWebSocket){
+      $.ajax({
+          type: 'POST',
+          async: false,
+          url: '/kill/looper/',
+          data: 'uuid=' + uuidFromWebSocket
+      })
+    }
+  })
 
 
   /* End UI  ***************************************************/
