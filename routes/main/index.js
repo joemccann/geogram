@@ -148,7 +148,7 @@ exports.realtime_search_geo = function(clientData,socket,wsType,cb){
       return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
         cb && cb(null,originalJson)
         var uuid = originalJson.data[0].id
-        looper(clientData,uuid,socket,wsType,15000) // 30 seconds
+        looper(clientData,uuid,socket,wsType,30000) // 30 seconds
       }) // end storeInstagramData()
 
     } // else
