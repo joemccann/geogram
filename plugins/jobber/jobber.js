@@ -79,7 +79,8 @@ Jobber.prototype.doesJobExist = function(jobId,cb){
 
     if(err) return cb(err)
 
-    if( (_.where(data.queue, {'jobId': jobId })).length ) return cb(new Error("Job already exists."))
+    if( (_.where(data.queue, {'jobId': jobId })).length ) 
+      return cb(new Error("Job already exists."))
 
     else return cb(null)
 
@@ -111,24 +112,24 @@ Jobber.prototype.createJob = function(config,uuid,cb){
   maxUTC: '2013-08-24' }
   */
 
-    config.timezoneOffset = parseInt(config.timezoneOffset) // Just because I'm paranoid
+  config.timezoneOffset = parseInt(config.timezoneOffset) // Just because I'm paranoid
 
-    // Make sure job isn't in past
-    if( self.isDateBeforeToday(config.minUTC,config.timezoneOffset) ) return cb(new Error('Start date is in the past.'))
-    if( self.isDateBeforeToday(config.maxUTC,config.timezoneOffset) ) return cb(new Error('End date is in the past.'))
+  // Make sure job isn't in past
+  if( self.isDateBeforeToday(config.minUTC,config.timezoneOffset) ) return cb(new Error('Start date is in the past.'))
+  if( self.isDateBeforeToday(config.maxUTC,config.timezoneOffset) ) return cb(new Error('End date is in the past.'))
 
-    // Make sure job end date isn't in past
-    if( self.isDateSameAsToday(config.maxUTC,config.timezoneOffset) ){
-			if( self.isDateSameAsToday(config.minUTC,config.timezoneOffset)) 
-        return cb(new Error('Start date and end dates are same.'))
-			else{
-				// Let's do work!
-				console.info("This job %s will start and end today.", uuid)
-				return cb(null, "Not implemented yet.")
-			}
+  // Make sure job end date isn't in past
+  if( self.isDateSameAsToday(config.maxUTC,config.timezoneOffset) ){
+		if( self.isDateSameAsToday(config.minUTC,config.timezoneOffset)) 
+      return cb(new Error('Start date and end dates are same.'))
+		else{
+			// Let's do work!
+			console.info("This job %s will start and end today.", uuid)
+			return cb(null, "Not implemented yet.")
 		}
+	}
 
-		return cb(null, "Not implemented yet but at the end.")
+	return cb(null, "Not implemented yet but at the end.")
 
 }
 
@@ -155,7 +156,6 @@ Jobber.prototype.addJobToDb = function(config,uuid,cb){
       return cb(null,body)
 
     }) // end fetchAllJobs()
-
 
   }) // end fetchAllJobs()
 
