@@ -2,6 +2,7 @@
 @import 'normalize'
 @import 'fonts'
 
+@import 'topcoat-desktop-light'
 
 
 *,
@@ -18,7 +19,6 @@ body
 body
   font-size: 100%
   font-family: 'proxima-regular', 'Helvetica-Neue', Arial, Helvetica, sans-serif
-  background-color $white
   color $black
   
 img
@@ -223,12 +223,12 @@ footer p
   max-width $maxwidth
   margin 0 auto
 
+.textcenter
+  text-align center
+
 .justify
   text-align justify
 
-.centerShadowBox
-  boxShadow(8px 8px 6px -6px rgba(0,0,0, 0.56))
-  margin 0 auto
 
 .no-touch a.red:hover
   color darken($red,20)

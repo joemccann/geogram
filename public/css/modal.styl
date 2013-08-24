@@ -67,7 +67,8 @@
   font-weight: 300
   opacity: 0.8
   background: rgba(0,0,0,0.1)
-  border-radius: 3px 3px 0 0
+  // border-radius: 3px 3px 0 0
+  borderRadius(3px 3px)
 
 .md-content > div
   padding: 15px 40px 30px
@@ -84,8 +85,15 @@
   color $white
   text-align justify
 
+.md-content > div p.textcenter
+  text-align center
+
 .md-content > div p a
   text-align center
+
+.md-content > div p a img
+  borderRadius(3px)
+
 
 .md-content > div ul
   margin: 0
