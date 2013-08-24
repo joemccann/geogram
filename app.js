@@ -53,6 +53,7 @@ app.locals.node_version = process.version.replace('v', '')
 app.locals.app_version = package.version
 app.locals.env = process.env.NODE_ENV
 app.locals.show_modal = false
+app.locals.instagram_json = null
 
 app.set('port', process.env.PORT || 3030)
 app.set('views', __dirname + '/views')
@@ -155,10 +156,11 @@ passport.deserializeUser(function(obj, done){
 function ensureAuthenticated(req, res, next) {
 
   if (req.isAuthenticated()){
+    app.locals.show_modal = false
     return next() 
   }
   else{
-    // console.dir(req.session)
+    app.locals.instagram_profile = app.locals.instagram_json = null
     app.locals.show_modal = true
     return next()
   }

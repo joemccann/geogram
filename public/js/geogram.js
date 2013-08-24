@@ -83,74 +83,99 @@ $(document).ready(function(){
     return (new Date().getTimezoneOffset()) / 60
   }
 
-  /* Handle Search Form ****************************************/
-  
-  var $form = $('#search-form')
-    , $button = $('#search-button')
-    , $address = $('#address')
+  /* UI  *******************************************************/
+
 
   // We have to set this no matter what.
   $('#timezoneOffset').val( getTimeZoneOffsetInHours() )
 
   if( $('.md-modal').length ){
 
-  /**
-   * modalEffects.js v1.0.0
-   * http://www.codrops.com
-   *
-   * Licensed under the MIT license.
-   * http://www.opensource.org/licenses/mit-license.php
-   * 
-   * Copyright 2013, Codrops
-   * http://www.codrops.com
-   */
+    /**
+     * modalEffects.js v1.0.0
+     * http://www.codrops.com
+     *
+     * Licensed under the MIT license.
+     * http://www.opensource.org/licenses/mit-license.php
+     * 
+     * Copyright 2013, Codrops
+     * http://www.codrops.com
+     */
 
-  function initModal(){
+    function initModal(){
 
-    var $overlay = $('.md-overlay')
-    , $mdTrigger = $('.md-trigger')
-    , $modal = $('#modal-16')
-    , $close = $('.md-close' )
-    ;
+      var $overlay = $('.md-overlay')
+      , $mdTrigger = $('.md-trigger')
+      , $modal = $('#modal-16')
+      , $close = $('.md-close' )
+      ;
 
-    console.log('init modal')
+      console.log('init modal')
 
-    function removeModal( hasPerspective ){
+      function removeModal( hasPerspective ){
 
-      $modal.removeClass('md-show');
+        $modal.removeClass('md-show');
 
-      if( hasPerspective ) {
-        $(document.documentElement).removeClass('md-perspective')
+        if( hasPerspective ) {
+          $(document.documentElement).removeClass('md-perspective')
+        }
       }
+
+      function removeModalHandler() {
+        removeModal( $mdTrigger.addClass('md-setperspective' ) ); 
+      }
+
+      $modal.addClass('md-show');
+
+      $overlay.bind( 'click', removeModalHandler );
+
+      if( $mdTrigger.hasClass('md-setperspective') ){
+        setTimeout( function() {
+          $(document.documentElement).addClass('md-perspective');
+        }, 25 );
+      }
+
+      $close.on( 'click', function( ev ) {
+        ev.stopPropagation();
+        removeModalHandler();
+      })
+
     }
 
-    function removeModalHandler() {
-      removeModal( $mdTrigger.addClass('md-setperspective' ) ); 
-    }
+    log('Not logged in so showing modal.')
 
-    $modal.addClass('md-show');
-
-    $overlay.bind( 'click', removeModalHandler );
-
-    if( $mdTrigger.hasClass('md-setperspective') ){
-      setTimeout( function() {
-        $(document.documentElement).addClass('md-perspective');
-      }, 25 );
-    }
-
-    $close.on( 'click', function( ev ) {
-      ev.stopPropagation();
-      removeModalHandler();
-    })
-
-  }
-
-
-    // We are not authenticated so we need to show the 
-    // login modal
-    log('showing modal')
     initModal()
+
+  }  // end if modal.length
+
+  // Then we have an Instagram User Object
+  if(typeof instagramUser != 'undefined'){
+    console.dir(instagramUser)
+
+    setInstagramProfileImage(instagramUser.profile_picture)
+    setUserPrefix(instagramUser.username)
+
+
+    function setInstagramProfileImage(src){
+      $('#instagram-profile-image').attr('src',src)
+      $('#instagram-profile-image').attr('title','Hey there '+instagramUser.full_name+'!')
+    }
+
+    function setUserPrefix(str){
+      $('#userprefix').val(str)
+    }
+
+
   }
+
+
+  /* End UI  ***************************************************/
+
+  /* Handle Search Form ****************************************/
+  
+  var $form = $('#search-form')
+    , $button = $('#search-button')
+    , $address = $('#address')
     
   if($form.length){
 
