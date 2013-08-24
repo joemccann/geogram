@@ -162,12 +162,18 @@ io.on('connection', function(socket){
 
     // console.dir(v)
 
+      // Get the uuid and check against all uuids
+      var uuid = ;
+
+
+
     // if we're conducting a search...
   	if(v.type && (v.type == 'geogram-search')){
 
 			var d = qs.parse(v.data)
 
       // console.dir(d)
+
 
       // Add ID here for each unique job
       if(d.minUTC || d.maxUTC){

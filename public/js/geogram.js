@@ -616,7 +616,10 @@ $(document).ready(function(){
     // We need to make each folder unique to the user
     $('#name_of_folder').val( $('#userprefix').val() +":"+ $('#name_of_folder').val() )
 
-    socket.send( JSON.stringify( { type:'geogram-search', data: $form.serialize() } ) )
+    var uuid = md5( $('#name_of_folder').val() )
+    log(uuid)
+
+    socket.send( JSON.stringify( { uuid: uuid ,type:'geogram-search', data: $form.serialize() } ) )
 
     return false
     
