@@ -597,6 +597,9 @@ $(document).ready(function(){
       
     }// todo check for numbers        
 
+    // We need to make each folder unique to the user
+    $('#name_of_folder').val( $('#userprefix').val() +":"+ $('#name_of_folder').val() )
+
     socket.send( JSON.stringify( { type:'geogram-search', data: $form.serialize() } ) )
 
     return false
