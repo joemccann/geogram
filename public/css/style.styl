@@ -1,5 +1,6 @@
 @import 'variables'
 @import 'normalize'
+@import 'fonts'
 
 
 
@@ -16,7 +17,7 @@ body
 
 body
   font-size: 100%
-  font-family: 'Source Sans', Helvetica, Arial, sans-serif
+  font-family: 'proxima-regular', 'Helvetica-Neue', Arial, Helvetica, sans-serif
   background-color $white
   color $black
   
@@ -37,6 +38,7 @@ p, li
   margin 0
   padding 0
   font-family: 'Source Sans', Helvetica, Arial, sans-serif
+  font-weight 200
 
 h1
   font-size 3.6em
@@ -44,14 +46,18 @@ h1
   line-height 1
   color lighten($black,30)
   font-weight normal
-  font-family: 'Source Sans', Helvetica, Arial, sans-serif
+  font-family: 'proxima-sbold', 'Helvetica-Neue', Arial, Helvetica, sans-serif
 
 h2
   font-size 2.4em
   font-weight 200
   line-height 1.1
-  font-family: 'Source Sans', Helvetica, Arial, sans-serif
+  font-family: 'proxima-bold', 'Helvetica-Neue', Arial, Helvetica, sans-serif
   margin 0
+
+h3
+  font-family: 'proxima-regular', 'Helvetica-Neue', Arial, Helvetica, sans-serif
+
 
   
 ul
@@ -229,6 +235,9 @@ footer p
 
 .opacity75
   normOpacity(75)
+
+
+@import 'modal'
 
 
 @import 'forms'

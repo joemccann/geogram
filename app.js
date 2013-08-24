@@ -1,16 +1,16 @@
-
-/**
- * Module dependencies.
- */
-
 var express = require('express')
   , routes = require('./routes')
   , mainApp = require('./routes/main')
   , path = require('path')
+  , fs = require('fs')
+  , passport = require('passport')
   , qs = require('querystring')
   , app = express(app)
   , server = require('http').createServer(app)
   , io = require('engine.io').attach(server)
+  , pathToInstagramConfig = require('./plugins/instagram/instagram-config.json')
+  , InstagramStrategy = require('passport-instagram').Strategy
+  , instagram_config
   , Jobber = require(path.resolve(__dirname, 'plugins/jobber/jobber.js'))
   , jobber
   , webSocketReference
@@ -26,6 +26,7 @@ app.locals.description = "Geogram • Capture Instagrams in a Geofenced Region"
 app.locals.node_version = process.version.replace('v', '')
 app.locals.app_version = package.version
 app.locals.env = process.env.NODE_ENV
+app.locals.show_modal = false
 
 app.set('port', process.env.PORT || 3030)
 app.set('views', __dirname + '/views')
@@ -33,8 +34,14 @@ app.set('view engine', 'ejs')
 app.use(express.favicon())
 app.use(express.logger(app.locals.env === 'production' ? 'tiny' : 'dev' ))
 app.use(express.compress())
-app.use(express.bodyParser())
-app.use(express.methodOverride())
+app.use(express.cookieParser());
+app.use(express.bodyParser());
+app.use(express.methodOverride());
+app.use(express.session({ secret: 'geogram' }))
+// Initialize Passport!  Also use passport.session() middleware, to support
+// persistent login sessions (recommended).
+app.use(passport.initialize())
+app.use(passport.session())
 app.use(app.router)
 app.use(require('stylus').middleware(__dirname + '/public'))
 app.use(express.static(path.join(__dirname, 'public')))
@@ -47,9 +54,79 @@ if ('development' == app.get('env')) {
 }
 
 // Core routes
-app.get('/', routes.index)
+app.get('/', ensureAuthenticated, routes.index)
 
 app.get('/showme', routes.showme)
+
+
+app.get('/account', ensureAuthenticated, function(req, res){
+  res.render('account', { user: req.user });
+});
+
+app.get('/login', function(req, res){
+  res.render('login', { user: req.user });
+});
+
+// GET /auth/instagram
+//   Use passport.authenticate() as route middleware to authenticate the
+//   request.  The first step in Instagram authentication will involve
+//   redirecting the user to instagram.com.  After authorization, Instagram
+//   will redirect the user back to this application at /auth/instagram/callback
+app.get('/oauth/instagram',
+  passport.authenticate('instagram'),
+  function(req, res){
+    // The request will be redirected to Instagram for authentication, so this
+    // function will not be called.
+  });
+
+// GET /auth/instagram/callback
+//   Use passport.authenticate() as route middleware to authenticate the
+//   request.  If authentication fails, the user will be redirected back to the
+//   login page.  Otherwise, the primary route function function will be called,
+//   which, in this example, will redirect the user to the home page.
+app.get('/oauth/instagram/callback', 
+  passport.authenticate('instagram', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.redirect('/');
+  });
+
+app.get('/logout', function(req, res){
+  req.logout();
+  res.redirect('/');
+});
+
+//    Passport session setup.
+//    To support persistent login sessions, Passport needs to be able to
+//    serialize users into and deserialize users out of the session.  Typically,
+//    this will be as simple as storing the user ID when serializing, and finding
+//    the user by ID when deserializing.  However, since this example does not
+//    have a database of user records, the complete Instagram profile is
+//    serialized and deserialized.
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+
+//    Simple route middleware to ensure user is authenticated.
+//    Use this route middleware on any resource that needs to be protected.  If
+//    the request is authenticated (typically via a persistent login session),
+//    the request will proceed.  Otherwise, the user will be redirected to the
+//    login page.
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()){
+    app.locals.show_modal = false
+    return next() 
+  }
+  else{
+    app.locals.show_modal = true
+    return next()
+  }
+}
+
 
 app.post('/search/geo', mainApp.search_geo_post)
 
@@ -167,9 +244,38 @@ server.listen(process.env.PORT || 3030, function(){
 
   console.log("\033[96m\nhttp://127.0.0.1:" + app.get('port') +"\033[96m\n")
 
+  // Init Jobber
   jobber = new Jobber(mainApp, webSocketReference)
 
   jobber.initializeJobs()
+
+  instagram_config = pathToInstagramConfig
+
+  var INSTAGRAM_CLIENT_ID = instagram_config.client_id
+  var INSTAGRAM_CLIENT_SECRET = instagram_config.client_secret
+
+  // Use the InstagramStrategy within Passport.
+  //   Strategies in Passport require a `verify` function, which accept
+  //   credentials (in this case, an accessToken, refreshToken, and Instagram
+  //   profile), and invoke a callback with a user object.
+  passport.use(new InstagramStrategy({
+      clientID: INSTAGRAM_CLIENT_ID,
+      clientSecret: INSTAGRAM_CLIENT_SECRET,
+      callbackURL: "http://geogram.jit.su/oauth/instagram/callback"
+    },
+    function(accessToken, refreshToken, profile, done) {
+      // asynchronous verification, for effect...
+      process.nextTick(function () {
+        
+        // To keep the example simple, the user's Instagram profile is returned to
+        // represent the logged-in user.  In a typical application, you would want
+        // to associate the Instagram account with a user record in your database,
+        // and return that user instead.
+        return done(null, profile);
+      });
+    }
+  ))
+
 
 });
 
