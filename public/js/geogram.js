@@ -22,7 +22,8 @@ $(document).ready(function(){
   
   // Global
   window.Geogram = {
-      hasTouch:true
+      uuid: null
+    , hasTouch:true
     , map: {
         init: null
       , canvasId: 'map-canvas'
@@ -110,7 +111,7 @@ $(document).ready(function(){
       , $close = $('.md-close' )
       ;
 
-      console.log('init modal')
+      // console.log('init modal')
 
       function removeModal( hasPerspective ){
 
@@ -127,7 +128,7 @@ $(document).ready(function(){
 
       $modal.addClass('md-show');
 
-      $overlay.bind( 'click', removeModalHandler );
+      // $overlay.bind('click', removeModalHandler)
 
       if( $mdTrigger.hasClass('md-setperspective') ){
         setTimeout( function() {
@@ -144,13 +145,16 @@ $(document).ready(function(){
 
     log('Not logged in so showing modal.')
 
-    initModal()
+    setTimeout(function(){
+      initModal()
+    },300)
 
   }  // end if modal.length
 
   // Then we have an Instagram User Object
   if(typeof instagramUser != 'undefined'){
-    console.dir(instagramUser)
+    
+    // console.dir(instagramUser)
 
     setInstagramProfileImage(instagramUser.profile_picture)
     setUserPrefix(instagramUser.username)
@@ -173,14 +177,10 @@ $(document).ready(function(){
   // TODO: IMPLEMENT THIS KILL FUNCTION
 
   $(window).unload(function(){
-    var uuidFromWebSocket = 'kljadsfkajlsdfweoij'
-    if(uuidFromWebSocket){
-      $.ajax({
-          type: 'POST',
-          async: false,
-          url: '/kill/looper/',
-          data: 'uuid=' + uuidFromWebSocket
-      })
+    if(Geogram.uuid){
+      log("sending message killjob for id %s", Geogram.uuid)
+      // Then we need to let server know that we are done with this job ID
+      socket.emit('killjob', { jobId: Geogram.uuid })
     }
   })
 
@@ -499,86 +499,50 @@ $(document).ready(function(){
   /* End Google Maps ********************************************/
 
 
-  /* Engine.io **************************************************/
+  /* Socket.io **************************************************/
 
-  socket = new eio.Socket()
+  var socket = io.connect('http://'+location.host)
 
-  socket.onopen = function(){
+  socket.on('connect', function(){
 
-    log("socket opened")
-
-    socket.send('ping')
+    log("Socket Connected.")
 
     executeInitSocketMethods(socketInitArray)
 
-  }
+  });
 
-  socket.onclose = function(){
-    log("socket closed")
+  socket.on('jobremoved', function(data){})
 
-    // Drastically improve this.
-    // alert('Reload page due to socket disconnect.')
-    // window.location.reload()
+  socket.on('geosearch-response', function(data){
 
-  }
-
-  socket.onmessage = function(msg){
-
-    try{msg = JSON.parse(msg)}catch(e){}
-
-    if(msg.type && (msg.type == 'geogram-search')){
-
-      $button.removeAttr('disabled').removeClass('opacity75').blur()
-
-      if(msg.error) return alert(msg.data)
-
-      $('#instagram-photos-container').find('ul').remove()
-
-      return render.instagramThumbs( $('#instagram-photos-container'), msg.data)
-
+    if(data.jobId != Geogram.uuid){
+      log("JobId " + data.jobId + "is irrelevant")
+      return
     }
 
-    else if(msg.type && (msg.type == 'list-all-couchdb-docs') ){
-      
-      // console.dir(msg.data)
-      
-      couchdb.data = msg.data
-      
-      render.allCouchDbDocs( $('#name_of_folder'), couchdb.data )
-      
-      render.updateCurrentFolder( $('#name_of_folder'), couchdb.data )
-      
-      couchdb.fetchDocumentData( couchdb.data.rows[0].id, 'get-couchdb-doc-data' )
-    }
+    $button.removeAttr('disabled').removeClass('opacity75').blur()
 
-    else if(msg.type && (msg.type == 'get-couchdb-doc-data') ){
+    if(data.error) return alert(data.data)
 
-      // console.dir(msg.data)
+    $('#instagram-photos-container').find('ul').remove()
 
-      render.couchDbDocument($('#instagram-photos-container'), msg.data)
-    }
+    log("Rendering data...")
 
-    else log(msg.data)
+    render.instagramThumbs( $('#instagram-photos-container'), data.data)
 
-  }
-
-  var executeInitSocketMethods = function(arr){
-    
-    arr.forEach(function(el){
-      el.method.apply(null, el.args)
-    })
-  }
+  }) // end socket.on('geosearch-response')
 
   var searchHandler = function(e){
 
     $button.attr('disabled', true).addClass('opacity75')
+    $('#instagram-photos-container').find('ul').remove()
+
     
     $('.error').removeClass('error')
     
     var $latitude = $('#latitude')
       , $longitude = $('#longitude')
       , $distance = $('#distance')
-
         
     // Sanitize...
     $latitude.val( strip( $latitude.val() ) ) 
@@ -611,20 +575,73 @@ $(document).ready(function(){
         
       return false
       
-    }// todo check for numbers        
+    }
+
+    // TODO check for numbers        
 
     // We need to make each folder unique to the user
+    var cacheFolderValue = $('#name_of_folder').val()
+
     $('#name_of_folder').val( $('#userprefix').val() +":"+ $('#name_of_folder').val() )
 
-    var uuid = md5( $('#name_of_folder').val() )
-    log(uuid)
+    if(Geogram.uuid){
+      log("sending messag killjob for id %s", Geogram.uuid)
+      // Then we need to let server know that we are done with this job ID
+      socket.emit('killjob', { jobId: Geogram.uuid })
+    }
 
-    socket.send( JSON.stringify( { uuid: uuid ,type:'geogram-search', data: $form.serialize() } ) )
+    Geogram.uuid = md5( $('#name_of_folder').val() )
+    
+    log(Geogram.uuid)
+
+    socket.emit('geosearch', { uuid: Geogram.uuid , data: $form.serialize() } )
+
+    // Update folder value to non-prefix value
+    $('#name_of_folder').val(cacheFolderValue)
 
     return false
+ 
+  } // end searchHandler()
+
+  var executeInitSocketMethods = function(arr){
     
+    arr.forEach(function(el){
+      el.method.apply(null, el.args)
+    })
   }
 
+
+  /* Engine.io **************************************************
+
+  socket.onmessage = function(msg){
+
+    try{msg = JSON.parse(msg)}catch(e){}
+
+    if(msg.type && (msg.type == 'list-all-couchdb-docs') ){
+      
+      // console.dir(msg.data)
+      
+      couchdb.data = msg.data
+      
+      render.allCouchDbDocs( $('#name_of_folder'), couchdb.data )
+      
+      render.updateCurrentFolder( $('#name_of_folder'), couchdb.data )
+      
+      couchdb.fetchDocumentData( couchdb.data.rows[0].id, 'get-couchdb-doc-data' )
+    }
+
+    else if(msg.type && (msg.type == 'get-couchdb-doc-data') ){
+
+      // console.dir(msg.data)
+
+      render.couchDbDocument($('#instagram-photos-container'), msg.data)
+    }
+
+    else log(msg.data)
+
+  }
+
+*/
 
   /* End Engine.io **********************************************/
 
@@ -707,7 +724,7 @@ $(document).ready(function(){
 
   if($('body').hasClass('showme')){
 
-    log('showme page')
+    log('Showme page')
 
     socketInitArray.push({
       method: couchdb.listAllDocs,
@@ -761,6 +778,7 @@ $(document).ready(function(){
 
   pubsub = new PubSub()
 
+  /* End PubSub  *************************************************/
 
   
 }) // end DOM ready

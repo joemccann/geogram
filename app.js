@@ -8,7 +8,7 @@ var express = require('express')
   , app = express(app)
   , colors = require("colors")
   , server = require('http').createServer(app)
-  , io = require('engine.io').attach(server)
+  , io = require('socket.io').listen(server)
   , pathToInstagramConfig = require('./plugins/instagram/instagram-config.json')
   , pathToRedisConfig = require('./plugins/redis/redis-config.json')
   , InstagramStrategy = require('passport-instagram').Strategy
@@ -17,6 +17,8 @@ var express = require('express')
   , jobber
   , webSocketReference
   ;
+
+/***************** Redis Stuff */
 
 var redis = require("redis")
   , RedisStore = require('connect-redis')(express)
@@ -41,8 +43,8 @@ redisClient.on("ready", function(){
 
 })
 
+/***************** End Redis Stuff */
 
-// all environments
 
 var package = require(path.resolve(__dirname, './package.json'))
 
@@ -91,12 +93,6 @@ if ('development' == app.get('env')) {
 // Core routes
 app.get('/', ensureAuthenticated, routes.index)
 
-app.post('/kill/looper', function(req,res){
-  var uuid = req.body.uuid
-  console.log('killing the looper with uuid', uuid)
-  res.send('done')
-})
-
 
 app.get('/showme', routes.showme)
 
@@ -119,7 +115,7 @@ app.get('/oauth/instagram/callback',
     res.redirect('/')
   })
 
-// TODO: implement this route
+
 app.get('/logout', function(req, res){
   req.logout()
   res.redirect('/')
@@ -151,26 +147,125 @@ function ensureAuthenticated(req, res, next) {
 }
 
 
+// jobIds which are currently connected to the chat
+var jobIds = {};
+
+io.sockets.on('connection', function (socket){
+
+  socket.on('geosearch', function(d){
+    console.dir(d)
+    // we stringify it back so the qs params are a single unique string
+    // WARN: This looks like a problem. the md5 client side can certainly be duplicated
+    // where as the server side cannot because it is the entire querystring
+    var uniqueJobId = d.uuid || jobber.createUniqueJobId(d) 
+
+    // add to global jobsIDs and change value of d to its parsed qs version
+    jobIds[uniqueJobId] = d.data = qs.parse(d.data)
+
+    socket.uuid = uniqueJobId
+
+    // Add ID here for each unique job
+    if(d.data.minUTC || d.data.maxUTC){
+
+      // Check to see if job exists
+      jobber.doesJobExist(uniqueJobId,function doesJobExistCb(err,data){
+
+        // TODO:  Should we inform the user at this point 
+        //        that the job already exists?
+        if(err) return console.error(err)
+
+        jobber.createJob(d,uniqueJobId,function createJobCb(err,data){
+
+          if(err) return console.error(err)
+
+          else {
+            console.log("Job created for id ".green + uniqueJobId.yellow)
+
+            jobber.addJobToDb(d,uniqueJobId,function addJobToDbCb(err,data){
+              if(err) return console.error(err)
+              console.log("Successfully added job to db.")
+              return console.log(data)
+            }) // addJobToDb
+          } // end else createJob()
+        }) // end createJob()
+
+      }) // end doesJobExist
+
+    } // end if
+
+    mainApp.realtime_search_geo(d.data,uniqueJobId,socket,function realtime_search_geoCb(err,data){
+
+      if(err){
+        console.error(err)
+        socket.emit('geosearch-response',{data:err,jobId:uniqueJobId, error:true})
+      }
+      else {
+        // console.log(data)
+        socket.emit('geosearch-response',{data:data, jobId:uniqueJobId})
+      }
+    
+    }) // end realtime_search_geo()    
+  }) // end socket.on('geosearch')
+
+
+  socket.on('killjob', function(data){
+
+    // remove the jobId from global jobId hash
+    delete jobIds[data.jobId];
+
+    // Confirm on client side
+    io.sockets.emit('jobremoved', data.jobId)
+
+    // remove it from the looper to stop the interval
+    mainApp.removeLooperById(data.jobId)
+    console.log("killed job "+ data.jobId)
+
+    console.log("on killjob")
+    console.dir(jobIds)
+    
+  }) // end socket.on('killjob')
+
+
+  // when the user disconnects.. perform this
+  socket.on('disconnect', function(){
+    if(socket.uuid && jobIds[socket.uuid]){
+      // remove the jobId from global jobId hash
+      delete jobIds[socket.uuid];
+      // Confirm on client side
+      io.sockets.emit('jobremoved', socket.uuid)
+      // remove it from the looper to stop the interval
+      mainApp.removeLooperById(socket.uuid)
+      console.dir(jobIds)
+    }
+
+    console.log("on disconnect")
+
+  }); // end socket.on('disconnect')
+}); // end io.sockets.on('connection')
+
+
+
+/*
 
 io.on('connection', function(socket){
 
   webSocketReference = socket
 
   socket.on('message', function(v){
-  	
-		try{v = JSON.parse(v)}catch(e){}
+    
+    try{v = JSON.parse(v)}catch(e){}
 
     // console.dir(v)
 
       // Get the uuid and check against all uuids
-      var uuid = ;
+      var uuid = '';
 
 
 
     // if we're conducting a search...
-  	if(v.type && (v.type == 'geogram-search')){
+    if(v.type && (v.type == 'geogram-search')){
 
-			var d = qs.parse(v.data)
+      var d = qs.parse(v.data)
 
       // console.dir(d)
 
@@ -209,20 +304,20 @@ io.on('connection', function(socket){
 
       }
 
-			mainApp.realtime_search_geo(d,socket,v.type,function realtime_search_geoCb(err,data){
+      mainApp.realtime_search_geo(d,socket,v.type,function realtime_search_geoCb(err,data){
 
-				if(err){
-					console.error(err)
-		    	socket.send(JSON.stringify({data:err,type:v.type,error:true}))
-		    }
-		    else {
-		    	// console.log(data)
-		    	socket.send(JSON.stringify({data:data,type:v.type}))
-		    }
-			
-			}) // end realtime_search_geo()
+        if(err){
+          console.error(err)
+          socket.send(JSON.stringify({data:err,type:v.type,error:true}))
+        }
+        else {
+          // console.log(data)
+          socket.send(JSON.stringify({data:data,type:v.type}))
+        }
+      
+      }) // end realtime_search_geo()
 
-  	}
+    }
 
     // if we're fetching a list of all couchdb docs...
     if(v.type && (v.type == 'list-all-couchdb-docs')){
@@ -261,11 +356,13 @@ io.on('connection', function(socket){
     }
 
     // Just a friendly game of...
-  	if(v == 'ping'){ socket.send('pong')}
+    if(v == 'ping'){ socket.send('pong')}
 
   }) // end onmessage
 
 }) // end io connection
+
+*/
 
 
 server.listen(process.env.PORT || 3030, function(){

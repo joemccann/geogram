@@ -126,7 +126,7 @@ function storeInstagramData(folderName,json,cb){
 
 } // end storeInstagramData()
 
-exports.realtime_search_geo = function(clientData,socket,wsType,cb){
+exports.realtime_search_geo = function(clientData,jobId,socket,cb){
 
   // Execute it right away, then set interval on grabbing new ones.
   geogram.executeRealTimeGeoSearch(clientData,function(err,data){
@@ -147,8 +147,8 @@ exports.realtime_search_geo = function(clientData,socket,wsType,cb){
       // Store the data
       return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
         cb && cb(null,originalJson)
-        var uuid = originalJson.data[0].id
-        looper(clientData,uuid,socket,wsType,30000) // 30 seconds
+        var looper = new Looper(clientData,jobId,socket,10000)
+        looper.executeLoop() // 10 seconds
       }) // end storeInstagramData()
 
     } // else
@@ -157,16 +157,41 @@ exports.realtime_search_geo = function(clientData,socket,wsType,cb){
 
 } // end realtime_search_geo()
 
-function looper(clientData,uuid,socket,wsId,timer){
+
+var looperJobIds = {}
+
+exports.removeLooperById = removeLooperById
+
+function removeLooperById(id){
+  console.log('removing looper id '+ id)
+  delete looperJobIds[id]
+}
+
+function Looper(clientData,jobId,socket,timer){
+  this.clientData = clientData
+  this.jobId = jobId
+  this.socket = socket
+  this.timer = timer
+
+  looperJobIds[jobId] = true
+}
+
+Looper.prototype.executeLoop = function(){
 
   var self = this
-  self.uuid = uuid // set it initially
 
-  console.info("Interval started for ID %s".blue  , self.uuid)
+  console.info("Interval started for ID %s".blue  , self.jobId)
 
   var inter = setInterval(function(){
 
-    geogram.executeRealTimeGeoSearch(clientData,function(err,data){
+    // Let's check to see if this jobId is still valid
+    if(typeof looperJobIds[self.jobId] == 'undefined'){
+      // Then the job was killed
+      console.log("Clearing interval for " +self.jobId)
+      return clearInterval(inter)
+    }
+
+    geogram.executeRealTimeGeoSearch(self.clientData,function(err,data){
 
       if(err) {
         return console.error(err)
@@ -188,11 +213,11 @@ function looper(clientData,uuid,socket,wsId,timer){
           // update since it is new.
           self.uuid = originalJson.data[0].id 
 
-          if(socket){
-            socket.send(JSON.stringify({data:originalJson,type:wsId}))
+          if(self.socket){
+            self.socket.emit('geosearch-response',{data:originalJson, jobId:self.jobId})
           }
 
-          return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
+          return storeInstagramData(self.clientData.name_of_folder, originalJson, function(err,data){
             if(err) return console.error(err)
               return console.dir(data)
           })
@@ -203,7 +228,15 @@ function looper(clientData,uuid,socket,wsId,timer){
 
     }) // end executeGeoSearch  
 
-  },timer)
+  },self.timer)
+
+
+}
+
+
+function looper(clientData,jobId,socket,timer){
+
+
 
 }
 
