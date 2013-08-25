@@ -145,10 +145,10 @@ exports.realtime_search_geo = function(clientData,jobId,socket,cb){
     else{
 
       // Store the data
-      return storeInstagramData(clientData.name_of_folder, originalJson, function(err,data){
-        cb && cb(null,originalJson)
-        var looper = new Looper(clientData,jobId,socket,10000)
-        looper.executeLoop() // 10 seconds
+      return storeInstagramData(clientData.name_of_folder, originalJson, 
+        function storeInstagramDataCb(err,data){
+          cb && cb(null,originalJson)
+          return (new Looper(clientData,jobId,socket,10000)).executeLoop()
       }) // end storeInstagramData()
 
     } // else

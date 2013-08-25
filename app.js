@@ -153,7 +153,8 @@ var jobIds = {};
 io.sockets.on('connection', function (socket){
 
   socket.on('geosearch', function(d){
-    console.dir(d)
+    // console.dir(d)
+    
     // we stringify it back so the qs params are a single unique string
     // WARN: This looks like a problem. the md5 client side can certainly be duplicated
     // where as the server side cannot because it is the entire querystring
