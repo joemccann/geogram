@@ -159,7 +159,6 @@ $(document).ready(function(){
     setInstagramProfileImage(instagramUser.profile_picture)
     setUserPrefix(instagramUser.username)
 
-
     function setInstagramProfileImage(src){
       $('#instagram-profile-image').attr('src',src)
       $('#instagram-profile-image').attr('title','Hey there '+instagramUser.full_name+'!')
@@ -173,9 +172,6 @@ $(document).ready(function(){
   } // end if instagramUser
 
   // We need to kill the websocket session/looper on backend on unload
-
-  // TODO: IMPLEMENT THIS KILL FUNCTION
-
   $(window).unload(function(){
     if(Geogram.uuid){
       log("sending message killjob for id %s", Geogram.uuid)
@@ -408,7 +404,6 @@ $(document).ready(function(){
       this.markers = []
 
       cb && cb()
-
     }
 
     GoogleMap.prototype.removeAllCircles = function(cb){
@@ -422,7 +417,6 @@ $(document).ready(function(){
       this.circles = []
 
       cb && cb()
-
     }
 
     GoogleMap.prototype.createInfoWindow = function(marker){
@@ -436,10 +430,8 @@ $(document).ready(function(){
         infowindow.setContent("Latitude: "+ lat + "<br>Longitude: "+ lon + "<br>")
         infowindow.open(this.map, marker);
       })
+    }
 
-    } // createInfoWindow()
-
-    // Geocode address 
     GoogleMap.prototype.codeAddress = function(val){
 
       var address = val || document.getElementById('address').value
@@ -471,29 +463,11 @@ $(document).ready(function(){
         }
         else alert('Geocode was not successful for the following reason: ' + status)
       }) // end geocode()
-
-    } // end codeAddress
-      
-    // $('#address').on('focus', toggleOriginalValue) 
-    // $('#address').on('blur', toggleOriginalValue) 
-
-
-    // toggle between an element's original value and blank
-    function toggleOriginalValue(){
-      if(this._stash) return
-      
-      this._stash = this.value
-
-      return this.value = ''
-
-    }
+    } 
 
     // Create the map module instance
-    window.googleMap = new GoogleMap()
-    
-    googleMap.initialize()
+    window.googleMap = (new GoogleMap()).initialize()
 
-  
   } // end Geogram.map.init
 
   /* End Google Maps ********************************************/
