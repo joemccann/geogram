@@ -22,7 +22,8 @@ $(document).ready(function(){
   
   // Global
   window.Geogram = {
-      uuid: null
+      uuid: null,
+      isBrowserSessionOnly: false
     , hasTouch:true
     , map: {
         init: null
@@ -173,7 +174,7 @@ $(document).ready(function(){
 
   // We need to kill the websocket session/looper on backend on unload
   $(window).unload(function(){
-    if(Geogram.uuid){
+    if(Geogram.uuid && Geogram.isBrowserSessionOnly){
       log("sending message killjob for id %s", Geogram.uuid)
       // Then we need to let server know that we are done with this job ID
       socket.emit('killjob', { jobId: Geogram.uuid })
@@ -551,22 +552,26 @@ $(document).ready(function(){
       
     }
 
-    // TODO check for numbers        
+    // TODO check for numbers     
+    // Refactor for less code   
 
     // We need to make each folder unique to the user
     var cacheFolderValue = $('#name_of_folder').val()
 
     $('#name_of_folder').val( $('#userprefix').val() +":"+ $('#name_of_folder').val() )
 
-    if(Geogram.uuid){
+    if(Geogram.uuid && Geogram.isBrowserSessionOnly){
       log("sending messag killjob for id %s", Geogram.uuid)
       // Then we need to let server know that we are done with this job ID
       socket.emit('killjob', { jobId: Geogram.uuid })
     }
 
     Geogram.uuid = md5( $('#name_of_folder').val() )
+
+    // If either has a value, then it is a proper future job
+    Geogram.isBrowserSessionOnly = ( $('#minUTC').val() || $('#maxUTC').val() ) ? false : true
     
-    log(Geogram.uuid)
+    // log(Geogram.uuid)
 
     socket.emit('geosearch', { uuid: Geogram.uuid , data: $form.serialize() } )
 

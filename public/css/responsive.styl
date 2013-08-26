@@ -5,16 +5,17 @@
 /* 768px */
 @media only screen and (max-width: 48em)
 
-  body
-    font-size 100%
+  #maps-container,
+  #search-form-container
+    display block
+    float none
+    width 100%
+    margin 0 auto 2%
 
-  #contact-form-container
-  	width 50%
-  	display inline-block
-  	float left
+  li
+    width: 25%
+    margin 0
 
-	#contact-form
-	  margin 8% auto
 
 
 /* 640px */
@@ -23,14 +24,8 @@
   body
     font-size 100%
 
-  #contact-form-container
-  	width 85%
-  	display inline-block
-  	float left
-
-	#contact-form
-	  margin 8% auto
-
+  li
+    width: 33.3%
 
 
 /* 480px */
@@ -39,13 +34,9 @@
   body
     font-size 100%
 
-   #contact-form-container
-   	width 95%
-   	display inline-block
-   	float left
+  li
+    width: 50%
 
-   #contact-form
-   	margin 4% auto
 
 
 /* 320px */

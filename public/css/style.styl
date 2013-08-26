@@ -65,9 +65,14 @@ ul
   list-style-type none
   margin 0
   padding 0
+  text-align center
   
 li
-  margin .75%
+  position: relative;
+  float: left;
+  display: inline;
+  width: 20%;
+  margin: 0;
 
 header
   position relative
@@ -83,6 +88,13 @@ footer
 footer p
   color $white
   font-size 1.2em
+
+li a 
+  display inline-block
+
+li a img
+  margin 0 5%
+  border 8px solid $white
 
 #container
   margin 0 auto
@@ -122,16 +134,7 @@ footer p
   vertical-align top
 
 #instagram-photos-container
-  display inline-block
-  padding 1%
-  overflow scroll
-  height 605px
-  vertical-align top
   margin 1% auto
-
-#instagram-photos-container ul li
-  display: inline
-
 
 #sync-with-dropbox
   float right
