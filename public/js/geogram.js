@@ -9,8 +9,8 @@ $(document).ready(function(){
     $('#name_of_folder').val('debug')
     $('#distance').val(500)
     // fix these to be dynamic...
-    $('#minUTC').val("2013-08-24")
-    $('#maxUTC').val("2013-08-25")
+    $('#minUTC').val("2013-08-27")
+    $('#maxUTC').val("2013-08-29")
   }
 
   var render
@@ -510,6 +510,10 @@ $(document).ready(function(){
 
   }) // end socket.on('geosearch-response')
 
+  var toUTC = function(dateString){
+    return new Date(dateString).getTime() / 1000
+  } 
+  
   var searchHandler = function(e){
 
     $button.attr('disabled', true).addClass('opacity75')
@@ -572,11 +576,33 @@ $(document).ready(function(){
     Geogram.uuid = md5( $('#name_of_folder').val() )
 
     // If either has a value, then it is a proper future job
-    Geogram.isBrowserSessionOnly = ( $('#minUTC').val() || $('#maxUTC').val() ) ? false : true
-    
-    // log(Geogram.uuid)
+    if($('#minUTC').val() || $('#maxUTC').val()){
+      var preSerialize = $form.serialize()
+  
+      Geogram.isBrowserSessionOnly = false
+  
+      // Grab min value
+      var minTemp = $('#minUTC').val()
+  
+      // toUTC it
+      var minReplace = toUTC(minTemp)
+  
+      // Replace it in string  
+      preSerialize = preSerialize.replace(minTemp,minReplace)
 
-    socket.emit('geosearch', { uuid: Geogram.uuid , data: $form.serialize() } )
+      // Grab min value
+      var maxTemp = $('#maxUTC').val()
+  
+      // toUTC it
+      var maxReplace = toUTC(maxTemp)
+  
+      // Replace it in string  
+      preSerialize = preSerialize.replace(maxTemp,maxReplace)
+
+    }
+
+    // log(Geogram.uuid)
+    socket.emit('geosearch', { uuid: Geogram.uuid , data: preSerialize || $form.serialize() } )
 
     // Update folder value to non-prefix value
     $('#name_of_folder').val(cacheFolderValue)

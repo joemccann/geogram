@@ -100,7 +100,7 @@ Jobber.prototype.createJob = function(config,uuid,cb){
 
   var self = this
 
-  // console.dir(config)
+  console.dir(config)
 /*
 { timezoneOffset: '4',
   address: '',

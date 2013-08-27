@@ -154,7 +154,9 @@ io.sockets.on('connection', function (socket){
 
   socket.on('geosearch', function(d){
     // console.dir(d)
-    
+
+    var objData = qs.parse(d.data)
+
     // we stringify it back so the qs params are a single unique string
     // WARN: This looks like a problem. the md5 client side can certainly be duplicated
     // where as the server side cannot because it is the entire querystring
@@ -164,6 +166,16 @@ io.sockets.on('connection', function (socket){
     jobIds[uniqueJobId] = d.data = qs.parse(d.data)
 
     socket.uuid = uniqueJobId
+
+    // Then browser session if neither...
+    if(!objData.minUTC || !objData.maxUTC){
+      jobIds[uniqueJobId].isBrowserSessionOnly = true
+
+      socket.uuid = uniqueJobId
+      socket.isBrowserSessionOnly = true
+
+    }
+
 
     // Add ID here for each unique job
     if(d.data.minUTC || d.data.maxUTC){
@@ -193,6 +205,8 @@ io.sockets.on('connection', function (socket){
       }) // end doesJobExist
 
     } // end if
+
+    // Still execute search regardless...eventually only execute jobs
 
     mainApp.realtime_search_geo(d.data,uniqueJobId,socket,function realtime_search_geoCb(err,data){
 
@@ -229,7 +243,7 @@ io.sockets.on('connection', function (socket){
 
   // when the user disconnects.. perform this
   socket.on('disconnect', function(){
-    if(socket.uuid && jobIds[socket.uuid]){
+    if(socket.uuid && jobIds[socket.uuid] && socket.isBrowserSessionOnly){
       // remove the jobId from global jobId hash
       delete jobIds[socket.uuid];
       // Confirm on client side
