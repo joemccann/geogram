@@ -335,8 +335,8 @@ $(document).ready(function(){
       // listen for click on map canvas 
       google.maps.event.addListener(self.map, 'click', function(event){
 
-        var mapsLat = self.position.latitude = event.latLng.mb
-          , mapsLng = self.position.longitude = event.latLng.nb
+        var mapsLat = self.position.latitude = event.latLng[Object.keys(event.latLng)[0]]
+          , mapsLng = self.position.longitude = event.latLng[Object.keys(event.latLng)[1]]
 
         self.updateInputValues()
 
@@ -447,8 +447,8 @@ $(document).ready(function(){
           self.removeAllMarkers()
           self.removeAllCircles()
 
-          self.position.latitude = results[0].geometry.location.mb
-          self.position.longitude = results[0].geometry.location.nb
+          self.position.latitude = results[0].geometry.location[Object.keys(results[0].geometry.location)[0]]
+          self.position.longitude = results[0].geometry.location[Object.keys(results[0].geometry.location)[1]]
 
           self.map.setCenter(results[0].geometry.location)
           
@@ -467,7 +467,8 @@ $(document).ready(function(){
     } 
 
     // Create the map module instance
-    window.googleMap = (new GoogleMap()).initialize()
+    window.googleMap = new GoogleMap()
+    googleMap.initialize()
 
   } // end Geogram.map.init
 
@@ -486,7 +487,9 @@ $(document).ready(function(){
 
   });
 
-  socket.on('jobremoved', function(data){})
+  socket.on('jobremoved', function(data){
+    log(data)
+  })
 
   socket.on('geosearch-response', function(data){
 
