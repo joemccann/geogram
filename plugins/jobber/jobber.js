@@ -174,7 +174,7 @@ console.warn("proccesJob kicking off")
 // cronTime, onTick, onComplete, start, timezone, context
 
 var timeZone = config.data.localTimezone
-  , _looper = new this.mainAppReference.Looper(config.data,config.jobId,null,10000)
+  , _looper = new this.mainAppReference.Looper(config.data,config.jobId,null,30000)
 
 var startDate = new Date(parseInt(config.data.minUTC))
 
@@ -187,19 +187,18 @@ var job = new cronJob(startDate, function cronJobStart(){
 
   // run the looper here
 
-  _looper.executeLoop()
+  _looper.executeLoop(function looperIsFinished(){
+    // remove from database
+    console.warn("Remove from DB not implemented")
+
+    // zip up images and json and email link
+    console.warn("zip up images and json not implemented")
+
+  })
 
 
   }, function cronJobComplete(){
   console.log("cronJobComplete called.")
-
-  // remove from database
-  console.warn("Remove from DB not implemented")
-
-  // zip up images and json and email link
-  console.warn("zip up images and json not implemented")
-
-
   }, 
   true,
   timeZone
