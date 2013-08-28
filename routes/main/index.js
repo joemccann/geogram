@@ -217,6 +217,12 @@ Looper.prototype.executeLoop = function(jobOnCompleteCb){
         return console.error(err)
       }
 
+      if(data.charAt(0) == '<'){
+        console.log(data)
+        console.log("Instagram API returned a block of HTML.".red)
+        return false
+      }
+
       var originalJson = JSON.parse(data)
 
       // console.dir(originalJson)
