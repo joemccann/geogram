@@ -169,7 +169,7 @@ Jobber.prototype.createUniqueJobId = function(str){
  */
 Jobber.prototype.processJob = function(config,looper,cb){
 
-console.warn("proccesJob kicking off")
+console.log("proccesJob kicking off")
 
 // cronTime, onTick, onComplete, start, timezone, context
 
