@@ -18,6 +18,18 @@ var express = require('express')
   , webSocketReference
   ;
 
+
+/***************** Socket.io Stuff */
+
+io.configure('production', function(){
+  io.enable('browser client etag')
+  io.set('log level', 1)
+})
+
+/***************** End Socket.io Stuff */
+
+
+
 /***************** Redis Stuff */
 
 var redis = require("redis")
