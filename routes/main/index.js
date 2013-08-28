@@ -160,23 +160,33 @@ exports.realtime_search_geo = function(clientData,jobId,socket,cb){
 
 var looperJobIds = {}
 
-exports.removeLooperById = removeLooperById
 
 function removeLooperById(id){
   console.log('removing looper id '+ id)
   delete looperJobIds[id]
 }
 
-function Looper(clientData,jobId,socket,timer){
+function Looper(clientData,jobId,socket,timer,killDate){
   this.clientData = clientData
   this.jobId = jobId
   this.socket = socket
   this.timer = timer
+  this.killDate = killDate || null
 
   looperJobIds[jobId] = true
 }
 
-Looper.prototype.executeLoop = function(){
+/**
+ * Determines if a date is in the past or not.
+ * @param {Number} utcTime, Unix Timestamp to be compared against
+ * @return {Boolean}
+ */
+Looper.prototype.isDateInPastUTC = function(utcTime){
+  // Grab current time and compare to incoming date
+  return utcTime > (new Date().getTime() / 1000)    
+}
+
+Looper.prototype.executeLoop = function(jobOnCompleteCb){
 
   var self = this
 
@@ -191,6 +201,16 @@ Looper.prototype.executeLoop = function(){
       return clearInterval(inter)
     }
 
+        // Let's check to see if this jobId is still valid
+    if(self.isDateInPastUTC(self.killDate)){
+      // Then the job was killed
+      console.log("Date is in the past for job " +self.jobId)
+      console.log("Clearing interval for " +self.jobId)
+      removeLooperById(self.jobId)
+      jobOnCompleteCb && jobOnCompleteCb()
+      return
+    }
+
     geogram.executeRealTimeGeoSearch(self.clientData,function(err,data){
 
       if(err) {
@@ -199,10 +219,18 @@ Looper.prototype.executeLoop = function(){
 
       var originalJson = JSON.parse(data)
 
-      if (originalJson.meta.code === 400) return false
+      // console.dir(originalJson)
+
+      if (originalJson.meta.code > 399){
+        console.warn("Instagram API returned a ".yellow+ originalJson.meta.code.yellow)
+        return false
+      }
 
       // Check if data is empty, meaning, no images.
-      if(!originalJson.data.length) return false
+      if(!originalJson.data.length){
+        console.warn("No images returned from Instagram API call.".yellow)
+        return false
+      }
       else{
 
         if(originalJson.data[0].id === self.uuid){
@@ -233,12 +261,10 @@ Looper.prototype.executeLoop = function(){
 
 }
 
-
-function looper(clientData,jobId,socket,timer){
-
+exports.Looper = Looper
 
 
-}
+exports.removeLooperById = removeLooperById
 
 
 exports.getHeadFromCouch = getHeadFromCouch

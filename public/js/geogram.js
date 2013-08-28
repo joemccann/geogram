@@ -88,8 +88,13 @@ $(document).ready(function(){
   /* UI  *******************************************************/
 
 
-  // We have to set this no matter what.
+  // We have to set these no matter what.
   $('#timezoneOffset').val( getTimeZoneOffsetInHours() )
+  // Determines the time zone of the browser client  
+  var tz = jstz.determine() 
+  // Returns the name of the time zone eg "Europe/Berlin"
+  var localTzName = tz.name() 
+  $('#localTimezone').val( localTzName )
 
   if( $('.md-modal').length ){
 

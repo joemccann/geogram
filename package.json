@@ -22,7 +22,8 @@
     "passport": "0.1.17",
     "connect-redis": "1.4.5",
     "redis": "0.8.4",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "cron": "~1.0.1"
   },
   "subdomain": "geogram",
   "engines": {

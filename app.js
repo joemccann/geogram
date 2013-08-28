@@ -93,17 +93,15 @@ if ('development' == app.get('env')) {
 // Core routes
 app.get('/', ensureAuthenticated, routes.index)
 
-
 app.get('/showme', routes.showme)
-
 
 app.get('/account', ensureAuthenticated, function(req, res){
   res.render('account', { user: req.user });
-});
+})
 
 app.get('/login', function(req, res){
   res.render('login', { user: req.user });
-});
+})
 
 app.get('/oauth/instagram',
   passport.authenticate('instagram'),
@@ -114,7 +112,6 @@ app.get('/oauth/instagram/callback',
   function(req, res){
     res.redirect('/')
   })
-
 
 app.get('/logout', function(req, res){
   req.logout()
@@ -130,7 +127,7 @@ passport.deserializeUser(function(obj, done){
   app.locals.instagram_profile = obj._json.data.profile_picture
   app.locals.instagram_json = 'var instagramUser = '+JSON.stringify(obj._json.data) 
   done(null, obj);
-});
+})
 
 
 function ensureAuthenticated(req, res, next) {
@@ -197,6 +194,7 @@ io.sockets.on('connection', function (socket){
             jobber.addJobToDb(d,uniqueJobId,function addJobToDbCb(err,data){
               if(err) return console.error(err)
               console.log("Successfully added job to db.")
+
               return console.log(data)
             }) // addJobToDb
           } // end else createJob()
