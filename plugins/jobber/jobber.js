@@ -183,7 +183,9 @@ var startDate = new Date(parseInt(config.data.minUTC))
 // WITAF
 var job = new cronJob(new Date(), function(){}, function(){},true,timeZone);
 
-var job = new cronJob(startDate, function cronJobStart(){
+// TODO: need to check if startDate is still today's date.
+
+var job = new cronJob(new Date() || startDate, function cronJobStart(){
 
   // run the looper here
 
@@ -198,7 +200,7 @@ var job = new cronJob(startDate, function cronJobStart(){
 
 
   }, function cronJobComplete(){
-  console.log("cronJobComplete called.")
+    console.log("cronJobComplete called.")
   }, 
   true,
   timeZone
