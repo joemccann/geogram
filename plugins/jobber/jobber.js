@@ -1,7 +1,9 @@
 var dateUtils = require('date-utils')
   , _ = require('lodash')
+  , path = require('path')
   , crypto = require('crypto')
-  cronJob = require('cron').CronJob
+  , Looper = require(path.resolve(__dirname, '../../', 'routes/main/looper.js')).Looper
+  , cronJob = require('cron').CronJob
   ;
 
 /**
@@ -25,7 +27,7 @@ Jobber.prototype.initializeJobs = function(){
 
   console.info("Initializing Jobs...".yellow)
 
-  self.mainAppReference.fetchFromCouch(self.jobsDocNameInDb,function(err,data){
+  self.mainAppReference.fetchDocFromCouch(self.jobsDocNameInDb,function(err,data){
     
     if(err) return console.error(err)
 
@@ -174,7 +176,7 @@ console.log("proccesJob kicking off")
 // cronTime, onTick, onComplete, start, timezone, context
 
 var timeZone = config.data.localTimezone
-  , _looper = new this.mainAppReference.Looper(config.data,config.jobId,null,30000)
+  , _looper = new Looper(config.data,config.jobId,null,30000)
 
 var startDate = new Date(parseInt(config.data.minUTC))
 

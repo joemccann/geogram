@@ -1,6 +1,7 @@
 var express = require('express')
   , routes = require('./routes')
   , mainApp = require('./routes/main')
+  , looper = require('./routes/main/looper.js').Looper
   , path = require('path')
   , fs = require('fs')
   , passport = require('passport')
@@ -105,7 +106,7 @@ if ('development' == app.get('env')) {
 // Core routes
 app.get('/', ensureAuthenticated, routes.index)
 
-app.get('/showme', routes.showme)
+app.get('/showme', ensureAuthenticated, routes.showme)
 
 app.get('/account', ensureAuthenticated, function(req, res){
   res.render('account', { user: req.user });
@@ -233,6 +234,24 @@ io.sockets.on('connection', function (socket){
   }) // end socket.on('geosearch')
 
 
+
+  // socket.on('fetch-all-docs', function(d){
+
+  //     mainApp.fetchAllDocs(function(err,data){
+
+  //       if(err){
+  //         console.error(err)
+  //         socket.send(JSON.stringify({data:err,type:v.type,error:true}))
+  //       }
+  //       else {
+  //         // console.log(data)
+  //         socket.send(JSON.stringify({data:data,type:v.type}))
+  //       }
+      
+  //     }) // end fetchAllDocs()
+  // }
+
+
   socket.on('killjob', function(data){
 
     // remove the jobId from global jobId hash
@@ -242,7 +261,7 @@ io.sockets.on('connection', function (socket){
     io.sockets.emit('jobremoved', data.jobId)
 
     // remove it from the looper to stop the interval
-    mainApp.removeLooperById(data.jobId)
+    looper.removeLooperById(data.jobId)
     console.log("killed job "+ data.jobId)
 
     console.log("on killjob")

@@ -3,14 +3,9 @@ var path = require('path')
   , fs = require('fs')
   , _ = require('lodash')
   , Geogram = require(path.resolve(__dirname, '..', '..', 'plugins/instagram/instagram.js'))
-  , Downloader = require(path.resolve(__dirname, '..', '..', 'plugins/downloader/downloader.js'))
-  , Stasher = require(path.resolve(__dirname, '..', '..', 'plugins/stasher/stasher.js'))
   , CouchDB = require(path.resolve(__dirname, '..', '..', 'plugins/couchdb/couchdb.js'))
-  ;
-
-var geogram = new Geogram()
-  , downloader = new Downloader(path.resolve(__dirname, '..', '..', 'public/downloads/'))
-  , stasher = new Stasher(path.resolve(__dirname,'..','..','public/stash/'))
+  , Looper = require(path.resolve(__dirname, './looper.js')).Looper
+  , looperJobIds = Looper.looperJobIds
   , nano = CouchDB
   , geogramdb = nano.db.use('geogram')
   ;
@@ -47,11 +42,11 @@ function stashInCouch(docName,json,cb){
 }
 
 /**
- * Fetches the json content to couchdb
+ * Fetches the json content from couchdb
  * @param {String} docName, The name of the document to be stored
  * @param {Function} cb, Callback function to be executed
  */
-function fetchFromCouch(docName,cb){
+function fetchDocFromCouch(docName,cb){
   geogramdb.get(docName, function(err, body) {
     if (err) return cb(err)
     else cb(null,body)
@@ -70,7 +65,7 @@ function fetchAllDocs(cb){
   })
 
 }
-
+    
 
 /**
  * Removes dupes from an array
@@ -83,26 +78,26 @@ function fetchAllDocs(cb){
 
 /**
  * Stores the proper Instagram json data in couchdb
- * @param {String} folderName, The name of the folder/document in couch 
+ * @param {String} username, The name of the folder/document in couch 
  * @param {Object} json, New json data to be inserted or appended
  * @param {Function} cb, Optional callback 
  */
-function storeInstagramData(folderName,json,cb){
+function storeUserInstagramData(username,json,cb){
 
-  getHeadFromCouch(folderName, function(err){
+  getHeadFromCouch(username, function getHeadFromCouchCb(err){
     // If there's an error, it means there is no doc by that name.
     if(err && err.status_code === 404) {
       // console.error(err)
-      return stashInCouch(folderName, json,function(err,data){
+      return stashInCouch(username, json,function(err,data){
         if(cb && err) cb(err)
         cb && cb(null, "Created initial doc in couchdb.")
       })
       
     }
 
-    return fetchFromCouch(folderName, function(err,couchJson){
+    return fetchDocFromCouch(username, function(err,couchJson){
 
-      console.log('Document name %s already exists.', folderName )
+      console.log('Document name %s already exists.', username )
       console.log(json.data.length + " is len of the new json.")
       console.log(couchJson.data.length + " is len of couchdb json.")
 
@@ -115,16 +110,16 @@ function storeInstagramData(folderName,json,cb){
       console.log(couchJson.data.length + " is len of unique objects.")
 
       // Store the data
-      stashInCouch(folderName, couchJson, function(err,data){
-        cb && cb(null,"Updated "+folderName+" document.")
+      stashInCouch(username, couchJson, function(err,data){
+        cb && cb(null,"Updated "+username+" document.")
       })
       return 
 
-    }) // end fetchFromCouch()
+    }) // end fetchDocFromCouch()
 
   }) // end getHeadFromCouch()
 
-} // end storeInstagramData()
+} // end storeUserInstagramData()
 
 exports.realtime_search_geo = function(clientData,jobId,socket,cb){
 
@@ -145,11 +140,11 @@ exports.realtime_search_geo = function(clientData,jobId,socket,cb){
     else{
 
       // Store the data
-      return storeInstagramData(clientData.name_of_folder, originalJson, 
-        function storeInstagramDataCb(err,data){
+      return storeUserInstagramData(clientData.name_of_folder, originalJson, 
+        function storeUserInstagramDataCb(err,data){
           cb && cb(null,originalJson)
-          return (new Looper(clientData,jobId,socket,10000)).executeLoop()
-      }) // end storeInstagramData()
+          return (new Looper(clientData,jobId,socket,30000)).executeLoop()
+      }) // end storeUserInstagramData()
 
     } // else
 
@@ -157,126 +152,12 @@ exports.realtime_search_geo = function(clientData,jobId,socket,cb){
 
 } // end realtime_search_geo()
 
-
-var looperJobIds = {}
-
-
-function removeLooperById(id){
-  console.log('removing looper id '+ id)
-  delete looperJobIds[id]
-}
-
-function Looper(clientData,jobId,socket,timer,killDate){
-  this.clientData = clientData
-  this.jobId = jobId
-  this.socket = socket
-  this.timer = timer
-  this.killDate = killDate || null
-
-  looperJobIds[jobId] = true
-}
-
-/**
- * Determines if a date is in the past or not.
- * @param {Number} utcTime, Unix Timestamp to be compared against
- * @return {Boolean}
- */
-Looper.prototype.isDateInPastUTC = function(utcTime){
-  // Grab current time and compare to incoming date
-  return utcTime > (new Date().getTime() / 1000)    
-}
-
-Looper.prototype.executeLoop = function(jobOnCompleteCb){
-
-  var self = this
-
-  console.info("Interval started for ID %s".blue  , self.jobId)
-
-  var inter = setInterval(function(){
-
-    // Let's check to see if this jobId is still valid
-    if(typeof looperJobIds[self.jobId] == 'undefined'){
-      // Then the job was killed
-      console.log("Clearing interval for " +self.jobId)
-      return clearInterval(inter)
-    }
-
-        // Let's check to see if this jobId is still valid
-    if(self.isDateInPastUTC(self.killDate)){
-      // Then the job was killed
-      console.log("Date is in the past for job " +self.jobId)
-      console.log("Clearing interval for " +self.jobId)
-      removeLooperById(self.jobId)
-      jobOnCompleteCb && jobOnCompleteCb()
-      return
-    }
-
-    geogram.executeRealTimeGeoSearch(self.clientData,function(err,data){
-
-      if(err) {
-        return console.error(err)
-      }
-
-      if(data.charAt(0) == '<'){
-        console.log(data)
-        console.log("Instagram API returned a block of HTML.".red)
-        return false
-      }
-
-      var originalJson = JSON.parse(data)
-
-      // console.dir(originalJson)
-
-      if (originalJson.meta.code > 399){
-        console.warn("Instagram API returned a ".yellow+ originalJson.meta.code.yellow)
-        return false
-      }
-
-      // Check if data is empty, meaning, no images.
-      if(!originalJson.data.length){
-        console.warn("No images returned from Instagram API call.".yellow)
-        return false
-      }
-      else{
-
-        if(originalJson.data[0].id === self.uuid){
-          return console.info("IDs are the same so no new photos.".yellow)
-        }
-        else {
-          console.info("IDs are different so we have new photos.".green)
-          // update since it is new.
-          self.uuid = originalJson.data[0].id 
-
-          if(self.socket){
-            self.socket.emit('geosearch-response',{data:originalJson, jobId:self.jobId})
-          }
-
-          return storeInstagramData(self.clientData.name_of_folder, originalJson, function(err,data){
-            if(err) return console.error(err)
-              return console.dir(data)
-          })
-
-        } // end inner else
-
-      } // end outer else
-
-    }) // end executeGeoSearch  
-
-  },self.timer)
-
-
-}
-
-exports.Looper = Looper
-
-
-exports.removeLooperById = removeLooperById
-
-
 exports.getHeadFromCouch = getHeadFromCouch
 
 exports.stashInCouch = stashInCouch
 
-exports.fetchFromCouch = fetchFromCouch
+exports.fetchDocFromCouch = fetchDocFromCouch
 
 exports.fetchAllDocs = fetchAllDocs
+
+exports.storeUserInstagramData = storeUserInstagramData
