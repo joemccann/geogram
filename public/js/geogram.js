@@ -528,11 +528,9 @@ $(document).ready(function(){
 
     if(data.error) return alert(data.data)
 
-    $('#instagram-photos-container').find('ul').remove()
-
     log("Rendering data...")
 
-    render.instagramThumbs( $('#instagram-photos-container'), data.data)
+    render.instagramThumbs( $('#instagram-photos-container').find('ul'), data.data)
 
   }) // end socket.on('geosearch-response')
 
@@ -543,8 +541,9 @@ $(document).ready(function(){
   var searchHandler = function(e){
 
     $button.attr('disabled', true).addClass('opacity75')
-    $('#instagram-photos-container').find('ul').remove()
 
+    // Remove old search thumbs
+    $('#instagram-photos-container').find('ul').find('li').remove()
     
     $('.error').removeClass('error')
     
@@ -731,7 +730,9 @@ $(document).ready(function(){
     
     return {
       instagramThumbs: function($element, data){
-        $element.html( _instagramThumbsTemplate( data ) )
+        console.dir($element)
+        console.dir(_instagramThumbsTemplate( data ))
+        $element.prepend( _instagramThumbsTemplate( data ) )
        },
       allCouchDbDocs: function($element, data){
         $element.html( _allCouchDbDocsTemplate( data ) )
