@@ -96,6 +96,27 @@ $(document).ready(function(){
   var localTzName = tz.name() 
   $('#localTimezone').val( localTzName )
 
+  // Wire the navigation
+  $('#nav-trigger').on('click', function(){
+
+    $('#st-container').toggleClass('st-menu-open')
+
+      setTimeout(function(){
+
+        $('.st-pusher').on('click', function(){
+
+          $('#st-container').toggleClass('st-menu-open')    
+
+          $('.st-pusher').off('click')
+
+        })
+
+    },1)  // wtf
+
+    return false
+
+  })
+
   if( $('.md-modal').length ){
 
     /**

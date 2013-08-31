@@ -19,25 +19,43 @@
     <p>Be sure and come back when you have JavaScript enabled - It's 2013!!!!111!1!</p>
   </noscript>
 
-  <div id="container">
+  <div id="st-container" class="st-effect-1 st-container">
 
+    <nav class="st-menu st-effect-1" id="menu-1">
+      <h2 class="icon icon-stack">Geogram</h2>
+      <ul>
+        <li><a class="icon icon-data" href="#">Data Management</a></li>
+        <li><a class="icon icon-location" href="#">Location</a></li>
+        <li><a class="icon icon-study" href="#">Study</a></li>
+      </ul>
+    </nav>
 
-  <%- include header %>
+      <!-- content push wrapper -->
+    <div class="st-pusher">
+
+        <div class="st-content"><!-- this is the wrapper for the content -->
+          <div class="st-content-inner"><!-- extra div for emulating position:fixed of the menu -->
+      
+            <%- include header %>
+
+            <div class="main full clearfix">
+                    <%- include search_form %>
+                    <%- include maps %>
+
+                    <div id="results-container" class="full">
+                      <%- include instagram_photos %>
+                    </div>
+
+              <%- include footer %>
+
+            </div><!-- /main -->
+
+          </div><!-- /st-content-inner -->
+        </div><!-- /st-content -->
+
+    </div><!-- /st-pusher -->
   
-  
-  <%- include search_form %>
-  <%- include maps %>
-
-  <div id="results-container" class="full">
-
-    <%- include instagram_photos %>
-    
-  </div>
-
-  <%- include footer %>
-
-  </div>
-
+  </div><!-- /st-container -->
 
 <%- include scripts %>
 

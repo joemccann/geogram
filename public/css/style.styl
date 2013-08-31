@@ -5,17 +5,20 @@
 @import 'topcoat-desktop-light'
 @import 'effeckt-autoprefixed'
 
+@import 'icons-st'
+@import 'component-st'
+
 
 *,
 *:after,
-*:before
+*:before,
+*::before
   -webkit-box-sizing: border-box
   -moz-box-sizing: border-box
   box-sizing: border-box
 
 html, 
 body
-  height 100%
 
 body
   font-size: 100%
@@ -24,10 +27,6 @@ body
   
 img
   max-width 100%
-
-nav
-  float right
-  margin-top 1%
 
 a
   color: $blue
@@ -40,6 +39,10 @@ p, li
   padding 0
   font-family: 'Source Sans', Helvetica, Arial, sans-serif
   font-weight 200
+
+nav li
+  font-size 1.2em
+
 
 h1
   font-size 3.6em
@@ -59,25 +62,9 @@ h2
 h3
   font-family: 'proxima-regular', 'Helvetica-Neue', Arial, Helvetica, sans-serif
 
-
-  
-ul
-  list-style-type none
-  margin 0
-  padding 0
-  text-align center
-  
-li
-  position: relative;
-  float: left;
-  display: inline;
-  width: 20%;
-  margin: 0;
-
 header
   position relative
   overflow hidden
-  margin-bottom 1%
 
 footer
   background-color $footerColor
@@ -96,15 +83,47 @@ li a img
   margin 0 5%
   border 8px solid $white
 
-#container
+.main
+  margin 0 auto
+  padding 0 1%
+
+
+#nav-container
   margin 0 auto
   overflow auto
-  padding 0 1%
+  padding 1.75% 0
+
+#logo
+  display inline-block
+  margin 0
+
+#logo-container
+  display inline-block
+  text-align left
+
+#nav-trigger
+  background: transparent url('/img/nav-icon.svg') no-repeat 0% 0%  
+  width 44px
+  height 44px
+  display inline-block
+  float right
+  margin 1% 1% 0 0
+  -webkit-transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275) all
+  -moz-transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275) all
+  -o-transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275) all
+  transition: 500ms cubic-bezier(0.175, 0.885, 0.32, 1.275) all
+
+.no-touch #nav-trigger:hover
+  -webkit-transform: rotate(90deg)
+  -ms-transform: rotate(90deg)
+  -o-transform: rotate(90deg)
+  transform: rotate(90deg)
+
 
 #map-canvas
   width 100%
   height 100%
-  min-height 693px
+  min-height 716px
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
@@ -119,15 +138,28 @@ li a img
   -webkit-box-shadow: inset 0 1px rgba(0,0,0,0.12);
   box-shadow: inset 0 1px rgba(0,0,0,0.12);
 
-#logo-container
-  display inline-block
-
 #map-canvas img
   max-width none
 
 #maps-container
   height 100%
   overflow auto
+
+#search-form-container
+  padding 0 1% 0 0
+
+#instagram-photos-container ul
+  list-style-type none
+  margin 0
+  padding 0
+  text-align center
+  
+#instagram-photos-container li
+  position: relative;
+  float: left;
+  display: inline;
+  width: 20%;
+  margin: 0;
 
 #results-container
   margin 1% auto
@@ -139,16 +171,6 @@ li a img
 #sync-with-dropbox
   float right
   display inline-block
-
-#nav-container
-  margin 0 auto
-  overflow auto
-
-#logo
-  display inline-block
-  margin 2.5% auto 0
-  text-align left
-  float left
 
 .showcopylabel
   margin-top 3.5%
@@ -251,6 +273,14 @@ li a img
 
 .opacity75
   normOpacity(75)
+
+.clearfix:before,
+.clearfix:after
+  display: table;
+  content: " "
+
+.clearfix:after
+  clear: both
 
 
 @import 'modal'

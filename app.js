@@ -1,7 +1,8 @@
 var express = require('express')
   , routes = require('./routes')
   , mainApp = require('./routes/main')
-  , looper = require('./routes/main/looper.js').Looper
+  , Looper = require('./routes/main/looper.js').Looper
+  , looperJobIds = Looper.looperJobIds
   , path = require('path')
   , fs = require('fs')
   , passport = require('passport')
@@ -10,8 +11,8 @@ var express = require('express')
   , colors = require("colors")
   , server = require('http').createServer(app)
   , io = require('socket.io').listen(server)
-  , pathToInstagramConfig = require('./plugins/instagram/instagram-config.json')
-  , pathToRedisConfig = require('./plugins/redis/redis-config.json')
+  , instagram_config = require('./plugins/instagram/instagram-config.json')
+  , redisConfig = require('./plugins/redis/redis-config.json')
   , InstagramStrategy = require('passport-instagram').Strategy
   , instagram_config
   , Jobber = require(path.resolve(__dirname, 'plugins/jobber/jobber.js'))
@@ -37,10 +38,10 @@ var redis = require("redis")
   , RedisStore = require('connect-redis')(express)
 
 var redisOptions = {
-  host:pathToRedisConfig.host,
-  port:pathToRedisConfig.port,
-  pass:pathToRedisConfig.pass,
-  auth:pathToRedisConfig.auth,
+  host:redisConfig.host,
+  port:redisConfig.port,
+  pass:redisConfig.pass,
+  auth:redisConfig.auth,
   db: 'geogram-redis'
 }
 
@@ -49,12 +50,12 @@ var redisClient = redis.createClient(redisOptions.port, redisOptions.host,{no_re
 redisClient.on("ready", function(){
 
   redisClient.auth(redisOptions.auth, function (err) {
-      if (err) { throw err; }
+    if(err) { throw err }
     console.info("You are now connected to your redis.".green)
 
-  })
+  }) // end redisClient.auth()
 
-})
+}) // end redisClient.on('ready')
 
 /***************** End Redis Stuff */
 
@@ -156,6 +157,14 @@ function ensureAuthenticated(req, res, next) {
   }
 }
 
+function runThisJob(data,jobId){
+  // config,looper,cb
+  jobber.processJob(data,jobId,function processJobCb(err,data){
+    if(err) return console.error(err)
+    return console.log(data)
+  })
+}
+
 
 // jobIds which are currently connected to the chat
 var jobIds = {};
@@ -179,11 +188,8 @@ io.sockets.on('connection', function (socket){
 
     // Then browser session if neither...
     if(!objData.minUTC || !objData.maxUTC){
-      jobIds[uniqueJobId].isBrowserSessionOnly = true
-
+      jobIds[uniqueJobId].isBrowserSessionOnly = socket.isBrowserSessionOnly = true
       socket.uuid = uniqueJobId
-      socket.isBrowserSessionOnly = true
-
     }
 
 
@@ -208,6 +214,8 @@ io.sockets.on('connection', function (socket){
               if(err) return console.error(err)
               console.log("Successfully added job to db.")
 
+              runThisJob(d, uniqueJobId)
+
               return console.log(data)
             }) // addJobToDb
           } // end else createJob()
@@ -218,8 +226,8 @@ io.sockets.on('connection', function (socket){
     } // end if
 
     // Still execute search regardless...eventually only execute jobs
-
-    mainApp.realtime_search_geo(d.data,uniqueJobId,socket,function realtime_search_geoCb(err,data){
+    mainApp.realtime_search_geo(d.data,uniqueJobId,socket,
+      function realtime_search_geoCb(err,data){
 
       if(err){
         console.error(err)
@@ -235,7 +243,7 @@ io.sockets.on('connection', function (socket){
 
 
 
-  // socket.on('fetch-all-docs', function(d){
+  // socket.on('fetch-user-docs', function(d){
 
   //     mainApp.fetchAllDocs(function(err,data){
 
@@ -254,6 +262,8 @@ io.sockets.on('connection', function (socket){
 
   socket.on('killjob', function(data){
 
+    console.log("socket on killjob")
+
     // remove the jobId from global jobId hash
     delete jobIds[data.jobId];
 
@@ -261,10 +271,9 @@ io.sockets.on('connection', function (socket){
     io.sockets.emit('jobremoved', data.jobId)
 
     // remove it from the looper to stop the interval
-    looper.removeLooperById(data.jobId)
+    Looper.removeLooperById(data.jobId)
     console.log("killed job "+ data.jobId)
 
-    console.log("on killjob")
     console.dir(jobIds)
     
   }) // end socket.on('killjob')
@@ -272,141 +281,23 @@ io.sockets.on('connection', function (socket){
 
   // when the user disconnects.. perform this
   socket.on('disconnect', function(){
+    
     if(socket.uuid && jobIds[socket.uuid] && socket.isBrowserSessionOnly){
       // remove the jobId from global jobId hash
       delete jobIds[socket.uuid];
       // Confirm on client side
       io.sockets.emit('jobremoved', socket.uuid)
       // remove it from the looper to stop the interval
-      looper.removeLooperById(socket.uuid)
+      Looper.removeLooperById(socket.uuid)
       console.dir(jobIds)
     }
 
     console.log("on disconnect")
 
-  }); // end socket.on('disconnect')
-}); // end io.sockets.on('connection')
+  }) // end socket.on('disconnect')
 
+}) // end io.sockets.on('connection')
 
-
-/*
-
-io.on('connection', function(socket){
-
-  webSocketReference = socket
-
-  socket.on('message', function(v){
-    
-    try{v = JSON.parse(v)}catch(e){}
-
-    // console.dir(v)
-
-      // Get the uuid and check against all uuids
-      var uuid = '';
-
-
-
-    // if we're conducting a search...
-    if(v.type && (v.type == 'geogram-search')){
-
-      var d = qs.parse(v.data)
-
-      // console.dir(d)
-
-
-      // Add ID here for each unique job
-      if(d.minUTC || d.maxUTC){
-
-        // we stringify it back so the qs params are a single unique string
-        var uniqueJobId = jobber.createUniqueJobId(qs.stringify(d))
-
-        // Check to see if job exists
-        jobber.doesJobExist(uniqueJobId,function doesJobExistCb(err,data){
-
-          // TODO:  Should we inform the user at this point 
-          //        that the job already exists?
-          if(err) return console.error(err)
-
-          jobber.createJob(d,uniqueJobId,function createJobCb(err,data){
-
-            if(err) return console.error(err)
-
-            else {
-              console.log("Job created for id ".green + uniqueJobId.yellow)
-
-              jobber.addJobToDb(d,uniqueJobId,function addJobToDbCb(err,data){
-                if(err) return console.error(err)
-                console.log("Successfully added job to db.")
-                return console.log(data)
-              }) // addJobToDb
-
-            } // end else createJob()
-
-          }) // end createJob()
-
-        }) // end doesJobExist
-
-      }
-
-      mainApp.realtime_search_geo(d,socket,v.type,function realtime_search_geoCb(err,data){
-
-        if(err){
-          console.error(err)
-          socket.send(JSON.stringify({data:err,type:v.type,error:true}))
-        }
-        else {
-          // console.log(data)
-          socket.send(JSON.stringify({data:data,type:v.type}))
-        }
-      
-      }) // end realtime_search_geo()
-
-    }
-
-    // if we're fetching a list of all couchdb docs...
-    if(v.type && (v.type == 'list-all-couchdb-docs')){
-
-      mainApp.fetchAllDocs(function(err,data){
-
-        if(err){
-          console.error(err)
-          socket.send(JSON.stringify({data:err,type:v.type,error:true}))
-        }
-        else {
-          // console.log(data)
-          socket.send(JSON.stringify({data:data,type:v.type}))
-        }
-      
-      }) // end fetchAllDocs()
-
-    }
-
-    // if we're fetching an individual doc...
-    if(v.type && (v.type == 'get-couchdb-doc-data')){
-
-      mainApp.fetchFromCouch(v.data, function(err,data){
-
-        if(err){
-          console.error(err)
-          socket.send(JSON.stringify({data:err,type:v.type,error:true}))
-        }
-        else {
-          // console.log(data)
-          socket.send(JSON.stringify({data:data,type:v.type}))
-        }
-      
-      }) // end fetchAllDocs()
-
-    }
-
-    // Just a friendly game of...
-    if(v == 'ping'){ socket.send('pong')}
-
-  }) // end onmessage
-
-}) // end io connection
-
-*/
 
 
 server.listen(process.env.PORT || 3030, function(){
@@ -417,8 +308,6 @@ server.listen(process.env.PORT || 3030, function(){
   jobber = new Jobber(mainApp, webSocketReference)
 
   jobber.initializeJobs()
-
-  instagram_config = pathToInstagramConfig
 
   var INSTAGRAM_CLIENT_ID = instagram_config.client_id
   var INSTAGRAM_CLIENT_SECRET = instagram_config.client_secret
@@ -443,10 +332,9 @@ server.listen(process.env.PORT || 3030, function(){
         return done(null, profile);
       });
     }
-  ))
+  )) // end passport.use()
 
-
-});
+}) // end server.listen()
 
 
 
@@ -457,5 +345,5 @@ server.listen(process.env.PORT || 3030, function(){
 process.on('uncaughtException', function(err) {
     // handle the error safely
     console.error(err)
-    console.trace(err.stack)
+    if(err.stack) console.trace(err.stack)
 });

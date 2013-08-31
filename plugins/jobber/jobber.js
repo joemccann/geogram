@@ -157,12 +157,22 @@ Jobber.prototype.addJobToDb = function(config,uuid,cb){
 /**
  * Creates a unique job id.
  * @param {String} str, Unique string of querystring params
- * @return {String} hash, Unique hash
+ * @return {String}
  */
 Jobber.prototype.createUniqueJobId = function(str){
   var sum = crypto.createHash('md5')
   sum.update(str)
   return sum.digest('hex')
+}
+
+/**
+ * Returns a date object from now plus a few seconds in the future.
+ * @param {Number} seconds, Number of seconds in the future
+ * @return {Date Object}
+ */
+Jobber.prototype.createDateObjectNowPlusSeconds = function(seconds){
+  var d = new Date()
+  return d.add({seconds: seconds}) 
 }
 
 /**
@@ -176,14 +186,11 @@ console.log("proccesJob kicking off")
 // console.dir(config)
 
 var timeZone = config.data.localTimezone
-  , startDate = this.addHoursToUTC(parseInt(config.data.minUTC)
+  , startDate = this.createDateObjectWithAddedHours(parseInt(config.data.minUTC)
               , parseInt(config.data.timezoneOffset))
-  , killDate = this.addHoursToUTC(parseInt(config.data.maxUTC)
+  , killDate = this.createDateObjectWithAddedHours(parseInt(config.data.maxUTC)
               , parseInt(config.data.timezoneOffset))
   , _looper = new Looper(config.data,config.jobId,null,30000,killDate)
-
-console.log(startDate + " is startDate")
-console.log(killDate + " is killDate")
 
 // Is startDate same as today's date?
 if(startDate.toDateString() == Date.today().toDateString()){
@@ -191,10 +198,16 @@ if(startDate.toDateString() == Date.today().toDateString()){
   // for the cron job, we have to set it to a new date if the 
   // dates are actually the same and add a few seconds to queue
   // it up
-  var d = new Date()
-  startDate = d.add({seconds: 3}) 
+  startDate = this.createDateObjectNowPlusSeconds(3)
 
 } 
+
+// If startDate is in the past, but killDate is in the future, we
+// we still need to restart the job until it is complete.
+if(this.isDateInFutureUTC(this.toUTC(killDate))){
+  startDate = this.createDateObjectNowPlusSeconds(3)
+}
+
 
 // cronTime, onTick, onComplete, start, timezone, context
 var job = new cronJob(startDate, function cronJobStart(){
@@ -258,7 +271,7 @@ Jobber.prototype.isDateAfterToday = function(utcTime,utcOffset){}
  */
 Jobber.prototype.isDateInPastUTC = function(utcTime){
   // Grab current time and compare to incoming date
-  return utcTime > (new Date().getTime() / 1000)    
+  return utcTime < (new Date().getTime() / 1000)    
 }
 
 /**
@@ -268,7 +281,7 @@ Jobber.prototype.isDateInPastUTC = function(utcTime){
  */
 Jobber.prototype.isDateInFutureUTC = function(utcTime){
   // Grab current time and compare to incoming date
-  return utcTime < (new Date().getTime() / 1000)    
+  return utcTime > (new Date().getTime() / 1000)    
 }
 
 
@@ -296,7 +309,7 @@ Jobber.prototype.toDateFromUTC = function(utc){
  * @param {Number} offset, number of hours offset (positive is negative GMT)
  * @return {Date}
  */
-Jobber.prototype.addHoursToUTC = function(utc, offset){
+Jobber.prototype.createDateObjectWithAddedHours = function(utc, offset){
   var d = this.toDateFromUTC(utc)
   d = d.add({hours: offset})
   return new Date( (new Date(0)).setUTCSeconds(this.toUTC(d)) )
