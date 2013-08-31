@@ -34,7 +34,7 @@ function Looper(clientData,jobId,socket,timer,killDate){
  */
 Looper.prototype.isDateInPastUTC = function(utcTime){
   // Grab current time and compare to incoming date
-  return utcTime > (new Date().getTime() / 1000)    
+  return utcTime < (new Date().getTime() / 1000)    
 }
 
 /**
@@ -53,8 +53,9 @@ Looper.prototype.executeLoop = function(looperSuccesCb,jobOnCompleteCb){
     // Let's check to see if this jobId is still valid
     if(typeof looperJobIds[self.jobId] == 'undefined'){
       // Then the job was killed
+      console.log("jobId is undefined " +self.jobId)
       console.log("Clearing interval for " +self.jobId)
-      return clearInterval(inter)
+      return ( inter && clearInterval(inter) )
     }
 
     // Let's check to see if this jobId is still valid
@@ -62,9 +63,9 @@ Looper.prototype.executeLoop = function(looperSuccesCb,jobOnCompleteCb){
       // Then the job was killed
       console.log("Date is in the past for job " +self.jobId)
       console.log("Clearing interval for " +self.jobId)
-      self.removeLooperById(self.jobId)
+      removeLooperById(self.jobId)
       jobOnCompleteCb && jobOnCompleteCb()
-      return
+      return ( inter && clearInterval(inter) )
     }
 
     // Execute the search...

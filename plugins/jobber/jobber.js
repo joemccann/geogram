@@ -77,7 +77,7 @@ Jobber.prototype.processAllJobs = function(cb){
  */
 Jobber.prototype.doesJobExist = function(jobId,cb){
 
-  this.mainAppReference.fetchFromCouch(this.jobsDocNameInDb,function fetchFromCouchCb(err,data){
+  this.mainAppReference.fetchDocFromCouch(this.jobsDocNameInDb,function fetchFromCouchCb(err,data){
 
     if(err) return cb(err)
 
@@ -132,7 +132,7 @@ Jobber.prototype.addJobToDb = function(config,uuid,cb){
 
   // Fetch the jobs queue doc from couch
 
-  self.mainAppReference.fetchFromCouch(self.jobsDocNameInDb,function(err,data){
+  self.mainAppReference.fetchDocFromCouch(self.jobsDocNameInDb,function(err,data){
     
     if(err) return cb(err)
 
@@ -173,23 +173,35 @@ Jobber.prototype.processJob = function(config,looper,cb){
 
 console.log("proccesJob kicking off")
 
-// cronTime, onTick, onComplete, start, timezone, context
-
-var timeZone = config.data.localTimezone
-  , _looper = new Looper(config.data,config.jobId,null,30000)
-
-var startDate = new Date(parseInt(config.data.minUTC))
-
 // console.dir(config)
 
-// WITAF
-var job = new cronJob(new Date(), function(){}, function(){},true,timeZone);
+var timeZone = config.data.localTimezone
+  , startDate = this.addHoursToUTC(parseInt(config.data.minUTC)
+              , parseInt(config.data.timezoneOffset))
+  , killDate = this.addHoursToUTC(parseInt(config.data.maxUTC)
+              , parseInt(config.data.timezoneOffset))
+  , _looper = new Looper(config.data,config.jobId,null,30000,killDate)
 
-// TODO: need to check if startDate is still today's date.
+console.log(startDate + " is startDate")
+console.log(killDate + " is killDate")
 
-var job = new cronJob(new Date() || startDate, function cronJobStart(){
+// Is startDate same as today's date?
+if(startDate.toDateString() == Date.today().toDateString()){
+
+  // for the cron job, we have to set it to a new date if the 
+  // dates are actually the same and add a few seconds to queue
+  // it up
+  var d = new Date()
+  startDate = d.add({seconds: 3}) 
+
+} 
+
+// cronTime, onTick, onComplete, start, timezone, context
+var job = new cronJob(startDate, function cronJobStart(){
 
   // run the looper here
+
+  console.log("cronJobStart...".green)
 
   _looper.executeLoop(function looperIsFinished(){
     // remove from database
@@ -197,6 +209,9 @@ var job = new cronJob(new Date() || startDate, function cronJobStart(){
 
     // zip up images and json and email link
     console.warn("zip up images and json not implemented")
+
+    job = null
+    delete job
 
   })
 
@@ -209,55 +224,6 @@ var job = new cronJob(new Date() || startDate, function cronJobStart(){
 )
 
 return
-
-/*
-function looper(clientData,uuid,socket,wsId,timer){
-
-  var self = this
-  self.uuid = uuid // set it initially
-
-  console.info("Interval started for ID %s".blue  , self.uuid)
-
-  var inter = setInterval(function (){
-
-    geogram.executeRealTimeGeoSearch(clientData,function(err,data){
-
-      if(err) {
-        return console.error(err)
-      }
-
-      var originalJson = JSON.parse(data)
-
-      if (originalJson.meta.code === 400) return false
-
-      // Check if data is empty, meaning, no images.
-      if(!originalJson.data.length) return false
-      else{
-
-        if(originalJson.data[0].id === self.uuid){
-          return console.info("IDs are the same so no new photos.".yellow)
-        }
-        else {
-          console.info("IDs are different so we have new photos.".green)
-          // update since it is new.
-          self.uuid = originalJson.data[0].id 
-
-          if(socket){
-            socket.send(JSON.stringify({data:originalJson,type:wsId}))
-          }
-
-          return storeInstagramData(clientData.name_of_folder, originalJson)
-
-        } // end inner else
-
-      } // end outer else
-
-    }) // end executeGeoSearch  
-
-  },timer)
-
-}
-*/
 
 }
 
@@ -309,9 +275,31 @@ Jobber.prototype.isDateInFutureUTC = function(utcTime){
 /**
  * Returns a Unix Timestamp from a date string.
  * @param {String} dateString, a calendar date in string format
+ * @return {Number}
  */
 Jobber.prototype.toUTC = function(dateString){
   return new Date(dateString).getTime() / 1000
+}
+
+/**
+ * Returns a date object from a UTC string.
+ * @param {Number} utc, a calendar date in string format
+ * @return {Date}
+ */
+Jobber.prototype.toDateFromUTC = function(utc){
+  return new Date( (new Date(0)).setUTCSeconds(utc) )
+}
+
+/**
+ * Returns a UTC string with the number of hours added to it.
+ * @param {Number} utc, a calendar date in string format
+ * @param {Number} offset, number of hours offset (positive is negative GMT)
+ * @return {Date}
+ */
+Jobber.prototype.addHoursToUTC = function(utc, offset){
+  var d = this.toDateFromUTC(utc)
+  d = d.add({hours: offset})
+  return new Date( (new Date(0)).setUTCSeconds(this.toUTC(d)) )
 }
 
 module.exports = Jobber

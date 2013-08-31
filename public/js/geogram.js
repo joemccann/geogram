@@ -9,8 +9,8 @@ $(document).ready(function(){
     $('#name_of_folder').val('debug')
     $('#distance').val(500)
     // fix these to be dynamic...
-    $('#minUTC').val("2013-08-27")
-    $('#maxUTC').val("2013-08-29")
+    $('#minUTC').val("2013-08-30")
+    $('#maxUTC').val("2013-09-01")
   }
 
   var render
@@ -600,6 +600,9 @@ $(document).ready(function(){
   
       // toUTC it
       var maxReplace = toUTC(maxTemp)
+
+      console.dir($('#minUTC').val())
+      console.dir($('#maxUTC').val())
   
       // Replace it in string  
       preSerialize = preSerialize.replace(maxTemp,maxReplace)

@@ -8,7 +8,10 @@ var path = require('path')
   , looperJobIds = Looper.looperJobIds
   , nano = CouchDB
   , geogramdb = nano.db.use('geogram')
+  , geogram = new Geogram()
   ;
+
+
 
 /**
  * Fetches the headers of a couchdb
