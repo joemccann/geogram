@@ -278,7 +278,7 @@ io.sockets.on('connection', function (socket){
       // Confirm on client side
       io.sockets.emit('jobremoved', socket.uuid)
       // remove it from the looper to stop the interval
-      mainApp.removeLooperById(socket.uuid)
+      looper.removeLooperById(socket.uuid)
       console.dir(jobIds)
     }
 
