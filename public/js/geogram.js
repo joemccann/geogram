@@ -600,9 +600,6 @@ $(document).ready(function(){
   
       // toUTC it
       var maxReplace = toUTC(maxTemp)
-
-      console.dir($('#minUTC').val())
-      console.dir($('#maxUTC').val())
   
       // Replace it in string  
       preSerialize = preSerialize.replace(maxTemp,maxReplace)

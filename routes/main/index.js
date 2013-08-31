@@ -126,6 +126,8 @@ function storeUserInstagramData(username,json,cb){
 
 exports.realtime_search_geo = function(clientData,jobId,socket,cb){
 
+  console.dir(clientData)
+
   // Execute it right away, then set interval on grabbing new ones.
   geogram.executeRealTimeGeoSearch(clientData,function(err,data){
 
@@ -146,7 +148,7 @@ exports.realtime_search_geo = function(clientData,jobId,socket,cb){
       return storeUserInstagramData(clientData.name_of_folder, originalJson, 
         function storeUserInstagramDataCb(err,data){
           cb && cb(null,originalJson)
-          return (new Looper(clientData,jobId,socket,30000)).executeLoop()
+          return (new Looper(clientData,jobId,socket,30000,clientData.maxUTC)).executeLoop()
       }) // end storeUserInstagramData()
 
     } // else

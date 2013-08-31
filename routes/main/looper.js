@@ -59,7 +59,7 @@ Looper.prototype.executeLoop = function(looperSuccesCb,jobOnCompleteCb){
     }
 
     // Let's check to see if this jobId is still valid
-    if(self.isDateInPastUTC(self.killDate)){
+    if(self.killDate && self.isDateInPastUTC(self.killDate)){
       // Then the job was killed
       console.log("Date is in the past for job " +self.jobId)
       console.log("Clearing interval for " +self.jobId)
