@@ -5532,11 +5532,11 @@ undefinedundefinedundefinedundefinedundefinedundefined.effeckt-tooltip[data-effe
   box-sizing: border-box;
 }
 html,
-body,
 body {
   font-size: 100%;
   font-family: 'proxima-regular', 'Helvetica-Neue', Arial, Helvetica, sans-serif;
   color: #000;
+  height: 100%;
 }
 img {
   max-width: 100%;
