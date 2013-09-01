@@ -53,7 +53,7 @@ Looper.prototype.executeLoop = function(looperSuccesCb,jobOnCompleteCb){
     // Let's check to see if this jobId is still valid
     if(typeof looperJobIds[self.jobId] == 'undefined'){
       // Then the job was killed
-      console.log("jobId is undefined " +self.jobId)
+      console.log("jobId is undefined, meaning, no longer in global hash, for ID " +self.jobId)
       console.log("Clearing interval for " +self.jobId)
       return ( inter && clearInterval(inter) )
     }

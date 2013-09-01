@@ -38,6 +38,7 @@ function getHeadFromCouch(docName,cb){
  * @param {Function} cb, Callback function to be executed
  */
 function stashInCouch(docName,json,cb){
+  console.log('Stashing '+docName+ ' in couch...')
   geogramdb.insert(json, docName, function(err, body) {
     if(err) cb(err)
     else cb(null,body)
@@ -102,19 +103,21 @@ function storeUserInstagramData(username,json,cb){
 
       console.log('Document name %s already exists.', username )
       console.log(json.data.length + " is len of the new json.")
-      console.log(couchJson.data.length + " is len of couchdb json.")
 
       // Merge
       couchJson.data = couchJson.data.concat(json.data)
-      console.log(couchJson.data.length + " is len of merged objects.")
 
       // Remove dupes
       couchJson.data = removeDuplicateObjectsFromArray(couchJson.data,'id')
-      console.log(couchJson.data.length + " is len of unique objects.")
+      console.log(couchJson.data.length + " is length of unique objects.")
 
       // Store the data
       stashInCouch(username, couchJson, function(err,data){
-        cb && cb(null,"Updated "+username+" document.")
+        if(err){
+          console.error(err)
+          return cb && cb(err)
+        }
+        return cb && cb(null,"Updated "+username+" document.")
       })
       return 
 

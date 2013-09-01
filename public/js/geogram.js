@@ -730,8 +730,6 @@ $(document).ready(function(){
     
     return {
       instagramThumbs: function($element, data){
-        console.dir($element)
-        console.dir(_instagramThumbsTemplate( data ))
         $element.prepend( _instagramThumbsTemplate( data ) )
        },
       allCouchDbDocs: function($element, data){

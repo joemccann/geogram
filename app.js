@@ -1,7 +1,7 @@
 var express = require('express')
   , routes = require('./routes')
   , mainApp = require('./routes/main')
-  , Looper = require('./routes/main/looper.js').Looper
+  , Looper = require('./routes/main/looper.js')
   , looperJobIds = Looper.looperJobIds
   , path = require('path')
   , fs = require('fs')
@@ -24,8 +24,9 @@ var express = require('express')
 /***************** Socket.io Stuff */
 
 io.configure('production', function(){
-  io.enable('browser client etag')
-  io.set('log level', 1)
+  io.enable('browser client gzip')
+  io.enable('browser client minification')
+  io.set('log level', 0)
 })
 
 /***************** End Socket.io Stuff */
@@ -113,6 +114,19 @@ app.get('/account', ensureAuthenticated, function(req, res){
   res.render('account', { user: req.user });
 })
 
+app.get('/settings', ensureAuthenticated, function(req, res){
+  res.render('settings', { user: req.user });
+})
+
+app.get('/about', function(req, res){
+  res.render('about', { user: req.user })
+})
+
+app.get('/logout', function(req, res){
+  req.logout()
+  res.redirect('/')
+})
+
 app.get('/login', function(req, res){
   res.render('login', { user: req.user });
 })
@@ -127,10 +141,6 @@ app.get('/oauth/instagram/callback',
     res.redirect('/')
   })
 
-app.get('/logout', function(req, res){
-  req.logout()
-  res.redirect('/')
-})
 
 passport.serializeUser(function(user, done){
   done(null, user);
@@ -214,7 +224,7 @@ io.sockets.on('connection', function (socket){
               if(err) return console.error(err)
               console.log("Successfully added job to db.")
 
-              runThisJob(d, uniqueJobId)
+              // runThisJob(d, uniqueJobId)
 
               return console.log(data)
             }) // addJobToDb
@@ -307,7 +317,7 @@ server.listen(process.env.PORT || 3030, function(){
   // Init Jobber
   jobber = new Jobber(mainApp, webSocketReference)
 
-  jobber.initializeJobs()
+  // jobber.initializeJobs()
 
   var INSTAGRAM_CLIENT_ID = instagram_config.client_id
   var INSTAGRAM_CLIENT_SECRET = instagram_config.client_secret
