@@ -48,7 +48,6 @@ Jobber.prototype.initializeJobs = function(){
  * Processes all jobs in queue.
  * @param {Function} cb, Callback function to be executed
  */
-
 Jobber.prototype.processAllJobs = function(cb){
 
   var self = this
