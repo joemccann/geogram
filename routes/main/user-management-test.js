@@ -1,3 +1,5 @@
+var assert = require('assert')
+
 var User = require(__dirname + '/user-management')
 
 var testData = {"username":"joemccann",
@@ -10,17 +12,51 @@ var testData = {"username":"joemccann",
 var testUser = new User(testData)
 
 // Create a user...
-testUser.create(function createUserCb(err,data){
+// testUser.create(function createUserCb(err,data){
 
+//   if(err) return console.error(err)
+
+//   console.log(data.ok ? "Creation was successful.".green : "Creation was a failure.".red)
+
+//   // Read a user...
+//   testUser.read(testData.username, function(err,data){
+//     if(err) return console.error(err)
+//     assert(data.username === testData.username)
+//     // console.dir(data)
+//   }) // end
+
+
+// })
+
+// Delete a user...
+testUser.delete(testData.username, function(err,data){
   if(err) return console.error(err)
+  console.log(data.ok ? "Deletion was successful.".green : "Deletion was a failure.".red)
+}) // end
 
-  console.log(data.ok ? "Creation was successful.".green : "Creation was a failure.".red)
+// // // Read a user...
+// testUser.read(testData.username, function(err,data){
+//   if(err) return console.error(err)
+//   assert.equal(data.username, testData.username, "Usernames are not equal.")
 
-  // Delete a user...
-  testUser.delete(testData.username, function(err,data){
-    if(err) return console.error(err)
-    console.log(data.ok ? "Deletion was successful.".green : "Deletion was a failure.".red)
-  })
 
-})
+// // Update a user...
+// var cacheBio = data.bio
+// data.bio = "Updated bio."
+
+// testUser.update(data, data.username, function(err,data){
+//   if(err) return console.error(err)
+//   console.log(data.ok ? "Update was successful.".green : "Update was a failure.".red)
+
+//   testUser.read(testData.username, function(err,data){
+//     if(err) return console.error(err)
+//     assert.equal(data.bio, "Updated bio.", "Bio's are not equal.")
+//     // console.dir(data)
+//   }) // end
+// }) // end
+
+
+//   // console.dir(data)
+// }) // end
+
 

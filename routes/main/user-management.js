@@ -49,7 +49,7 @@ User.prototype.create = function(cb){
         if(err) cb(err)
         else cb(null,body)
       }) 
-           
+
     }
     else{
       // Does exist
@@ -59,15 +59,26 @@ User.prototype.create = function(cb){
 
 }
 
-User.prototype.read = function(docName,cb){
-  geogramdb.get(docName, function(err, body) {
+/**
+ * Fetch a user's info by the username.
+ * @param {Object} username, username associated with user account
+ * @param {Function} cb, Callback function to be executed
+ */
+User.prototype.read = function(username,cb){
+  geogramdb.get(username, function(err, body) {
     if (err) return cb(err)
     else cb(null,body)
   })  
 }
 
-User.prototype.update = function(data,docName,cb){
-  geogramdb.insert(data, docName, function(err, body) {
+/**
+ * Update a user's info user by their username as the ID.
+ * @param {Object} data, the data to be updated
+ * @param {String} username, username associate with user account
+ * @param {Function} cb, Callback function to be executed
+ */
+User.prototype.update = function(data,username,cb){
+  geogramdb.insert(data, username, function(err, body) {
     if(err) cb(err)
     else cb(null,body)
   })
