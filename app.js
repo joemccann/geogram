@@ -187,9 +187,7 @@ io.sockets.on('connection', function (socket){
     var objData = qs.parse(d.data)
 
     // we stringify it back so the qs params are a single unique string
-    // WARN: This looks like a problem. the md5 client side can certainly be duplicated
-    // where as the server side cannot because it is the entire querystring
-    var uniqueJobId = d.uuid || jobber.createUniqueJobId(d) 
+    var uniqueJobId = jobber.createUniqueJobId(d) 
 
     // add to global jobsIDs and change value of d to its parsed qs version
     jobIds[uniqueJobId] = d.data = qs.parse(d.data)
@@ -201,7 +199,6 @@ io.sockets.on('connection', function (socket){
       jobIds[uniqueJobId].isBrowserSessionOnly = socket.isBrowserSessionOnly = true
       socket.uuid = uniqueJobId
     }
-
 
     // Add ID here for each unique job
     if(d.data.minUTC || d.data.maxUTC){

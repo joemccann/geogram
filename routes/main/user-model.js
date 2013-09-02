@@ -12,6 +12,7 @@ var path = require('path')
  * @param {Object} userdata, Data object from Instagram
  */
 function User(userdata){
+  this.type = 'user'
   this.username = userdata.username
   this.profile_picture = userdata.profile_picture
   this.full_name = userdata.full_name
@@ -24,7 +25,8 @@ function User(userdata){
  */
 User.prototype._serializeToJson = function(){
   return {
-      username: this.username
+      type: this.type
+    , username: this.username
     , profile_picture: this.profile_picture
     , full_name : this.full_name
     , instagram_user_id : this.instagram_user_id 
@@ -45,7 +47,7 @@ User.prototype.create = function(cb){
       console.log("Creating a new user with username ".yellow 
         + self.username.toString().bold + ". ")
       
-      self.update(self._serializeToJson(), self.username, function insertCb(err, body){
+      self.update(self._serializeToJson(), self.username, function updateCb(err, body){
         if(err) cb(err)
         else cb(null,body)
       }) 
@@ -61,11 +63,11 @@ User.prototype.create = function(cb){
 
 /**
  * Fetch a user's info by the username.
- * @param {Object} username, username associated with user account
+ * @param {String} username, username associated with user account
  * @param {Function} cb, Callback function to be executed
  */
 User.prototype.read = function(username,cb){
-  geogramdb.get(username, function(err, body) {
+  geogramdb.get(username, function readCb(err, body) {
     if (err) return cb(err)
     else cb(null,body)
   })  
@@ -78,7 +80,7 @@ User.prototype.read = function(username,cb){
  * @param {Function} cb, Callback function to be executed
  */
 User.prototype.update = function(data,username,cb){
-  geogramdb.insert(data, username, function(err, body) {
+  geogramdb.insert(data, username, function updateCb(err, body) {
     if(err) cb(err)
     else cb(null,body)
   })
@@ -98,7 +100,7 @@ User.prototype.delete = function(username,cb){
     if (err) return cb(new Error("User doesn't exist so can't delete."))
     else{
       // Does exist
-      geogramdb.destroy(username, data._rev, function(err,data){
+      geogramdb.destroy(username, data._rev, function destroyCb(err,data){
         if(err) return cb(err)
         return cb(null,data)
       })
@@ -107,6 +109,20 @@ User.prototype.delete = function(username,cb){
 
 } // end delete()
 
+
+/**
+ * Get all geocapture documents.
+ * @param {String} type, type of document
+ * @param {Function} cb, Callback function to be executed
+ */
+User.prototype.allDocsByType = function(type,cb){
+
+  geogramdb.view(type, 'all', function viewCb(err, view){
+    if(err) return cb(err)
+    return cb(null,view)
+  }) // end view()
+
+} // end allDocsByType()
 
 
 module.exports = User
