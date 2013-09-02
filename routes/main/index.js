@@ -11,6 +11,8 @@ var path = require('path')
   , geogram = new Geogram()
   ;
 
+// New Models...
+var GeocaptureModel = require(path.resolve(__dirname,'./geocapture-model.js'))
 
 
 /**
@@ -127,9 +129,9 @@ function storeUserInstagramData(username,json,cb){
 
 } // end storeUserInstagramData()
 
-exports.realtime_search_geo = function(clientData,jobId,socket,cb){
+exports.realtime_search_geo = function(clientData,uuid,socket,cb){
 
-  console.dir(clientData)
+  // console.dir(clientData)
 
   // Execute it right away, then set interval on grabbing new ones.
   geogram.executeRealTimeGeoSearch(clientData,function(err,data){
@@ -139,20 +141,37 @@ exports.realtime_search_geo = function(clientData,jobId,socket,cb){
       return cb(err)
     }
 
-    var originalJson = JSON.parse(data)
+    var parsedJson = JSON.parse(data)
 
-    if (originalJson.meta.code === 400) return cb(originalJson.meta.error_message)
+    if (parsedJson.meta.code > 399) return cb(parsedJson.meta.error_message)
 
     // Check if data is empty, meaning, no images.
-    if(!originalJson.data.length) return cb("No data. Probably a bad request.")
+    if(!parsedJson.data.length) return cb("No data. Probably a bad request.")
     else{
 
-      // Store the data
-      return storeUserInstagramData(clientData.name_of_folder, originalJson, 
-        function storeUserInstagramDataCb(err,data){
-          cb && cb(null,originalJson)
-          return (new Looper(clientData,jobId,socket,30000,clientData.maxUTC)).executeLoop()
-      }) // end storeUserInstagramData()
+      // TODO: UPDATE THIS USERNAME PREFIX PIECE
+      // Store the data for the user
+
+      var geo = new GeocaptureModel(clientData.userprefix, uuid, clientData)
+
+      // TODO: FIRST CONDUCT A READ AND IF DOESN'T EXIST, THEN CREATE
+      // OTHERWISE, UPDATE...
+      geo.create(parsedJson.data, function createCb(err,data){
+        if(err){ return cb(err) }
+
+        cb && cb(null,parsedJson)
+
+        return (new Looper(clientData,uuid,socket,30000,clientData.maxUTC))
+                .executeLoop()
+      }) // end create
+
+
+      // // Store the data
+      // return storeUserInstagramData(clientData.name_of_folder, parsedJson, 
+      //   function storeUserInstagramDataCb(err,data){
+      //     cb && cb(null,parsedJson)
+      //     return (new Looper(clientData,uuid,socket,30000,clientData.maxUTC)).executeLoop()
+      // }) // end storeUserInstagramData()
 
     } // else
 

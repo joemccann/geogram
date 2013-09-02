@@ -1,8 +1,12 @@
 var path = require('path')
+  , colors = require('colors')
 	,	Geogram = require(path.resolve(__dirname, '..', '..', 'plugins/instagram/instagram.js'))
 	, geogram = new Geogram()
 	, mainApp = require(path.resolve(__dirname, './index.js'))
 	;
+
+var GeocaptureModel = require(path.resolve(__dirname,'./geocapture-model.js'))
+
 
 // We need a global LooperIds object, not per instance
 
@@ -111,10 +115,34 @@ Looper.prototype.executeLoop = function(looperSuccesCb,jobOnCompleteCb){
             self.socket.emit('geosearch-response',{data:parsedJson, jobId:self.jobId})
           }
 
-          return mainApp.storeUserInstagramData(self.clientData.name_of_folder, parsedJson, function(err,data){
+          var geo = new GeocaptureModel(self.clientData.userprefix, self.jobId, self.clientData)
+
+          // TODO: FIRST, READ THE LATEST, THEN ADD TO IT.
+          return geo.read(self.jobId,function readCb(err,data){
+
+            if(err) return cb(err)
+
+            var currentData = data
+            console.log(currentData.geocapturedData.length + " is current data length.")  
+
+            // Merge
+            currentData.geocapturedData = currentData.geocapturedData.concat(parsedJson.data)
+
+            // Remove dupes
+            currentData.geocapturedData = geo.removeDuplicateObjectsFromArray(currentData.geocapturedData,'id')
+            console.log(currentData.geocapturedData.length + " is length of unique objects.")
+
+            geo.update(currentData, self.jobId, function updateCb(err,data){
             if(err) return console.error(err)
-              return console.dir(data)
-          })
+              return console.log(data.ok ? "Update was successful.".green : "Update was a failure.".red)
+            }) // end update
+
+          }) // end read
+
+          // return mainApp.storeUserInstagramData(self.clientData.name_of_folder, parsedJson, function(err,data){
+          //   if(err) return console.error(err)
+          //     return console.dir(data)
+          // })
 
         } // end inner else
 

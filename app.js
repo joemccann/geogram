@@ -21,6 +21,10 @@ var express = require('express')
   ;
 
 
+var UserModel = require(path.resolve(__dirname,'./routes/main/user-model.js'))
+
+
+
 /***************** Socket.io Stuff */
 
 io.configure('production', function(){
@@ -139,6 +143,23 @@ app.get('/oauth/instagram/callback',
   passport.authenticate('instagram', { failureRedirect: '/login' }),
   function(req, res){
     res.redirect('/')
+    // add user to DB, note, user may already exist but user model logic
+    // checks for that
+    var user = new UserModel(req.user)
+    user.create(function createUserCb(err,data){
+
+      if(err) return console.error(err.message.red)
+
+      console.log(data.ok ? "Creation was successful.".green : "Creation was a failure.".red)
+
+      // Read a user...
+      user.read(req.user.username, function(err,data){
+        if(err) return console.error(err)
+        console.log(data.username ? "Read of new user was successful.".green : "Read of new user was a failure.".red)
+        // console.dir(data)
+      }) // end
+
+    }) // end user.create()
   })
 
 
@@ -187,7 +208,7 @@ io.sockets.on('connection', function (socket){
     var objData = qs.parse(d.data)
 
     // we stringify it back so the qs params are a single unique string
-    var uniqueJobId = jobber.createUniqueJobId(d) 
+    var uniqueJobId = jobber.createUniqueJobId(d.data) 
 
     // add to global jobsIDs and change value of d to its parsed qs version
     jobIds[uniqueJobId] = d.data = qs.parse(d.data)
@@ -238,11 +259,11 @@ io.sockets.on('connection', function (socket){
 
       if(err){
         console.error(err)
-        socket.emit('geosearch-response',{data:err,jobId:uniqueJobId, error:true})
+        socket.emit('geosearch-response',{data:err,uuid:uniqueJobId, error:true})
       }
       else {
         // console.log(data)
-        socket.emit('geosearch-response',{data:data, jobId:uniqueJobId})
+        socket.emit('geosearch-response',{data:data, uuid:uniqueJobId})
       }
     
     }) // end realtime_search_geo()    

@@ -2,6 +2,7 @@
 
 var path = require('path')
  , colors = require('colors')
+ , _ = require('lodash')
  , CouchDB = require(path.resolve(__dirname, '..', '..', 'plugins/couchdb/couchdb.js'))
  , nano = CouchDB
  , geogramdb = nano.db.use('geogram')
@@ -11,11 +12,13 @@ var path = require('path')
  * Constructor
  * @param {String} username, User's username
  * @param {String} id, Unique ID for the document
+ * @param {Object} request_params_object, The object from initial search request
  */
-function Geocapture(username, id){
+function Geocapture(username, id, request_params_object){
   this.type = 'geocapture'
   this.username = username
   this.id = id
+  this.request_params_object = request_params_object
   this.geocapturedData = null
 }
 
@@ -141,5 +144,13 @@ Geocapture.prototype.allDocsByUsername = function(type,username,cb){
 
 } // end allDocsByUsername()
 
+/**
+ * Removes dupes from an array
+ * @param {Array} arr, The source array
+ * @param {String} docType, The key by witch to 
+ */
+ Geocapture.prototype.removeDuplicateObjectsFromArray = function(arr,docType){
+  return _.map(_.groupBy(arr,function(doc){return doc[docType]}),function(grouped){return grouped[0]})
+}
 
 module.exports = Geocapture

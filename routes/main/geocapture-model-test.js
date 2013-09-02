@@ -1,13 +1,14 @@
 var assert = require('assert')
   , fs = require('fs')
   , mockCaptureData = require(__dirname + '/mock-geocapture-data.json')
+  , mockRequestObjectData = require(__dirname + '/mock-request-object-data.json')
   , Geocapture = require(__dirname + '/geocapture-model')
   , testData = {
                 "type": "geocapture",
                 "username":"joemccann",
                 "id":"test-debug-id-should-be-hash",
                 }
-  , testUser = new Geocapture(testData.username,testData.id)
+  , testUser = new Geocapture(testData.username,testData.id,mockRequestObjectData)
   ;
 
 /*****************************************************************************************/

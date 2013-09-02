@@ -505,7 +505,7 @@ $(document).ready(function(){
 
   var socket = io.connect('http://'+location.host)
 
-  socket.on('connect', function(){
+  socket.on('connect', function(d){
 
     log("Socket Connected.")
 
@@ -518,6 +518,14 @@ $(document).ready(function(){
   })
 
   socket.on('geosearch-response', function(data){
+
+    // TODO: FIX THIS SOMEHOW SO NOT EVERY EVENT EMITTED
+    // POSSIBLY BY USERNAME ASSOCIATED? DOESN'T ALLOW FOR 
+    // MULTIPLE CONNECTIONS...
+
+    if(!Geogram.uuid){
+      Geogram.uuid = data.jobId 
+    }
 
     if(data.jobId != Geogram.uuid){
       log("JobId " + data.jobId + "is irrelevant")
@@ -598,7 +606,7 @@ $(document).ready(function(){
       socket.emit('killjob', { jobId: Geogram.uuid })
     }
 
-    Geogram.uuid = md5( $('#name_of_folder').val() )
+    // Geogram.uuid = md5( $('#name_of_folder').val() )
 
     // If either has a value, then it is a proper future job
     if($('#minUTC').val() || $('#maxUTC').val()){
@@ -627,7 +635,7 @@ $(document).ready(function(){
     }
 
     // log(Geogram.uuid)
-    socket.emit('geosearch', { uuid: Geogram.uuid , data: preSerialize || $form.serialize() } )
+    socket.emit('geosearch', { data: preSerialize || $form.serialize() } )
 
     // Update folder value to non-prefix value
     $('#name_of_folder').val(cacheFolderValue)
@@ -644,39 +652,7 @@ $(document).ready(function(){
   }
 
 
-  /* Engine.io **************************************************
-
-  socket.onmessage = function(msg){
-
-    try{msg = JSON.parse(msg)}catch(e){}
-
-    if(msg.type && (msg.type == 'list-all-couchdb-docs') ){
-      
-      // console.dir(msg.data)
-      
-      couchdb.data = msg.data
-      
-      render.allCouchDbDocs( $('#name_of_folder'), couchdb.data )
-      
-      render.updateCurrentFolder( $('#name_of_folder'), couchdb.data )
-      
-      couchdb.fetchDocumentData( couchdb.data.rows[0].id, 'get-couchdb-doc-data' )
-    }
-
-    else if(msg.type && (msg.type == 'get-couchdb-doc-data') ){
-
-      // console.dir(msg.data)
-
-      render.couchDbDocument($('#instagram-photos-container'), msg.data)
-    }
-
-    else log(msg.data)
-
-  }
-
-*/
-
-  /* End Engine.io **********************************************/
+  /* End Socket.io **********************************************/
 
   /* CouchDB Module *********************************************/
 
