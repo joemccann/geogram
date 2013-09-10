@@ -111,8 +111,8 @@ User.prototype.delete = function(username,cb){
 
 
 /**
- * Get all geocapture documents.
- * @param {String} type, type of document
+ * Get all user documents.
+ * @param {String} type, type of document (e.g. user)
  * @param {Function} cb, Callback function to be executed
  */
 User.prototype.allDocsByType = function(type,cb){

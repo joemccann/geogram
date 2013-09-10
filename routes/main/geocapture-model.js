@@ -27,10 +27,14 @@ function Geocapture(username, id, request_params_object){
  * @return {Object}
  */
 Geocapture.prototype._serializeToJson = function(){
+
+  var self = this
+
   return {
       type: this.type
     , username: this.username
     , id: this.id
+    , request_params_object: this.request_params_object
   }
 }
 
@@ -51,7 +55,7 @@ Geocapture.prototype.create = function(captureData,cb){
 
       var doc = self._serializeToJson()
       doc.geocapturedData = captureData
-      
+
       self.update(doc, self.id, function updateCb(err, body){
         if(err) cb(err)
         else cb(null,body)

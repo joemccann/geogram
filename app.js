@@ -335,7 +335,7 @@ server.listen(process.env.PORT || 3030, function(){
   // Init Jobber
   jobber = new Jobber(mainApp, webSocketReference)
 
-  // jobber.initializeJobs()
+  jobber.initializeJobs()
 
   var INSTAGRAM_CLIENT_ID = instagram_config.client_id
   var INSTAGRAM_CLIENT_SECRET = instagram_config.client_secret
