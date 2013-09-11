@@ -33,13 +33,21 @@ Jobber.prototype.initializeJobs = function(){
     if(err) return console.error(err)
 
     if(!data.queue.length) return console.info("\nNo jobs to do!".yellow)
+
+    // Remove old jobs...
+    self.removeOldJobsFromDb(function(err,removalData){
+      if(err) return console.error(err)
+      else console.log(removalData)
+
+      // Cycle through jobs, firing them off
+      console.info("We have ".red +data.queue.length+" jobs to do.".red)
+
+      self.jobs = data.queue
+
+      self.processAllJobs()
+
+    }) // end fetchDocFromCouch()
     
-    // Cycle through jobs, firing them off
-    console.info("We have ".red +data.queue.length+" jobs to do.".red)
-
-    self.jobs = data.queue
-
-    self.processAllJobs()
 
   }) // end fetchAllJobs()
 
@@ -66,12 +74,6 @@ Jobber.prototype.processAllJobs = function(cb){
   }) // end forEach
 
   cb && cb() 
-    
-  // Remove old jobs...
-  self.removeOldJobsFromDb(function(err,data){
-    if(err) return console.error(err)
-    else console.log(data)
-  })
 
 }
 
