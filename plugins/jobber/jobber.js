@@ -1,5 +1,6 @@
 var dateUtils = require('date-utils')
   , _ = require('lodash')
+  , colors = require('colors')
   , path = require('path')
   , crypto = require('crypto')
   , Looper = require(path.resolve(__dirname, '../../', 'routes/main/looper.js')).Looper
@@ -65,6 +66,12 @@ Jobber.prototype.processAllJobs = function(cb){
   }) // end forEach
 
   cb && cb() 
+    
+  // Remove old jobs...
+  self.removeOldJobsFromDb(function(err,data){
+    if(err) return console.error(err)
+    else console.log(data)
+  })
 
 }
 
@@ -154,6 +161,43 @@ Jobber.prototype.addJobToDb = function(config,uuid,cb){
 }
 
 /**
+ * Removes expired job sfrom the jobs document in the Database.
+ * @param {Function} cb, Callback function to be executed
+ */
+
+Jobber.prototype.removeOldJobsFromDb = function(cb){
+
+  var self = this
+
+  // Fetch the jobs queue doc from couch
+
+  self.mainAppReference.fetchDocFromCouch(self.jobsDocNameInDb,function(err,data){
+    
+    if(err) return cb && cb(err)
+
+    data.queue.forEach(function(el,i){
+      if(el.data.maxUTC && self.isDateInPastUTC(el.data.maxUTC)){
+        console.log('Removing expried job '+el.uuid+' from Database.'.yellow)
+        data.queue[i] = null
+      }
+    })
+
+    // remove falsey values.
+    data.queue = _.compact(data.queue)
+
+    // Now stash it in the couch
+    self.mainAppReference.stashInCouch(self.jobsDocNameInDb,data,function(err,body){
+      
+      if(err) return cb(err)
+      return cb(null,body)
+
+    }) // end stashInCouch()
+  
+  }) // end fetchDocFromCouch()
+
+}
+
+/**
  * Creates a unique job id.
  * @param {String} str, Unique string of querystring params
  * @return {String}
@@ -180,62 +224,62 @@ Jobber.prototype.createDateObjectNowPlusSeconds = function(seconds){
  */
 Jobber.prototype.processJob = function(config,looper,cb){
 
-console.log("proccesJob kicking off")
+  console.log("proccesJob kicking off")
 
-// console.dir(config)
+  // console.dir(config)
 
-var timeZone = config.data.localTimezone
-  , startDate = this.createDateObjectWithAddedHours(parseInt(config.data.minUTC)
-              , parseInt(config.data.timezoneOffset))
-  , killDate = this.createDateObjectWithAddedHours(parseInt(config.data.maxUTC)
-              , parseInt(config.data.timezoneOffset))
-  , _looper = new Looper(config.data,config.jobId,null,30000,killDate)
+  var timeZone = config.data.localTimezone
+    , startDate = this.createDateObjectWithAddedHours(parseInt(config.data.minUTC)
+                , parseInt(config.data.timezoneOffset))
+    , killDate = this.createDateObjectWithAddedHours(parseInt(config.data.maxUTC)
+                , parseInt(config.data.timezoneOffset))
+    , _looper = new Looper(config.data,config.jobId,null,30000,killDate)
 
-// Is startDate same as today's date?
-if(startDate.toDateString() == Date.today().toDateString()){
+  // Is startDate same as today's date?
+  if(startDate.toDateString() == Date.today().toDateString()){
 
-  // for the cron job, we have to set it to a new date if the 
-  // dates are actually the same and add a few seconds to queue
-  // it up
-  startDate = this.createDateObjectNowPlusSeconds(3)
+    // for the cron job, we have to set it to a new date if the 
+    // dates are actually the same and add a few seconds to queue
+    // it up
+    startDate = this.createDateObjectNowPlusSeconds(3)
 
-} 
+  } 
 
-// If startDate is in the past, but killDate is in the future, we
-// we still need to restart the job until it is complete.
-if(this.isDateInFutureUTC(this.toUTC(killDate))){
-  startDate = this.createDateObjectNowPlusSeconds(3)
-}
-
-
-// cronTime, onTick, onComplete, start, timezone, context
-var job = new cronJob(startDate, function cronJobStart(){
-
-  // run the looper here
-
-  console.log("cronJobStart...".green)
-
-  _looper.executeLoop(function looperIsFinished(){
-    // remove from database
-    console.warn("Remove from DB not implemented")
-
-    // zip up images and json and email link
-    console.warn("zip up images and json not implemented")
-
-    job = null
-    delete job
-
-  })
+  // If startDate is in the past, but killDate is in the future, we
+  // we still need to restart the job until it is complete.
+  if(this.isDateInFutureUTC(this.toUTC(killDate))){
+    startDate = this.createDateObjectNowPlusSeconds(3)
+  }
 
 
-  }, function cronJobComplete(){
-    console.log("cronJobComplete called.")
-  }, 
-  true,
-  timeZone
-)
+  // cronTime, onTick, onComplete, start, timezone, context
+  var job = new cronJob(startDate, function cronJobStart(){
 
-return
+    // run the looper here
+
+    console.log("cronJobStart...".green)
+
+    _looper.executeLoop(function looperIsFinished(){
+      // remove from database
+      console.warn("Remove from DB not implemented")
+
+      // zip up images and json and email link
+      console.warn("zip up images and json not implemented")
+
+      job = null
+      delete job
+
+    })
+
+
+    }, function cronJobComplete(){
+      console.log("cronJobComplete called.")
+    }, 
+    true,
+    timeZone
+  )
+
+  return
 
 }
 
