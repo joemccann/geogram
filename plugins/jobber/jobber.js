@@ -111,7 +111,7 @@ Jobber.prototype.createJob = function(config,uuid,cb){
   var self = this
 
   console.dir(config)
-/*
+  /*
    { timezoneOffset: '4',
      localTimezone: 'America/New_York',
      userprefix: 'joemccann',
@@ -122,7 +122,7 @@ Jobber.prototype.createJob = function(config,uuid,cb){
      longitude: '-73.9975228',
      minUTC: '1377561600',
      maxUTC: '1377734400' }  
-*/
+  */
 
   config.timezoneOffset = parseInt(config.timezoneOffset) // Just because I'm paranoid
 
@@ -166,7 +166,6 @@ Jobber.prototype.addJobToDb = function(config,uuid,cb){
  * Removes expired job sfrom the jobs document in the Database.
  * @param {Function} cb, Callback function to be executed
  */
-
 Jobber.prototype.removeOldJobsFromDb = function(cb){
 
   var self = this
@@ -179,7 +178,8 @@ Jobber.prototype.removeOldJobsFromDb = function(cb){
 
     data.queue.forEach(function(el,i){
       if(el.data.maxUTC && self.isDateInPastUTC(el.data.maxUTC)){
-        console.log('Removing expried job '+el.uuid+' from Database.'.yellow)
+        console.dir(el)
+        console.log('Removing expired job '+el.uuid+' from Database.'.yellow)
         data.queue[i] = null
       }
     })

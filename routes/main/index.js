@@ -5,6 +5,7 @@ var path = require('path')
   , Geogram = require(path.resolve(__dirname, '..', '..', 'plugins/instagram/instagram.js'))
   , CouchDB = require(path.resolve(__dirname, '..', '..', 'plugins/couchdb/couchdb.js'))
   , Looper = require(path.resolve(__dirname, './looper.js')).Looper
+  , Jobber = require(path.resolve(__dirname, '..', '..', 'plugins/jobber/jobber.js'))
   , looperJobIds = Looper.looperJobIds
   , nano = CouchDB
   , geogramdb = nano.db.use('geogram')
@@ -161,8 +162,12 @@ exports.realtime_search_geo = function(clientData,uuid,socket,cb){
 
         cb && cb(null,parsedJson)
 
+        var removalFromDb = function(){
+          console.warn("removalFromDb not implemented yet")
+        }
+
         return (new Looper(clientData,uuid,socket,30000,clientData.maxUTC))
-                .executeLoop()
+                .executeLoop(null,removalFromDb)
       }) // end create
 
 

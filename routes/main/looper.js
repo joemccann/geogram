@@ -42,7 +42,7 @@ Looper.prototype.isDateInPastUTC = function(utcTime){
 }
 
 /**
- * Specific set of instructions to be executed over a fixe interval.
+ * Specific set of instructions to be executed over a fixed interval.
  * @param {Function} looperSuccesCb, gets fired on each successful loop
  * @param {Function} jobOnCompleteCb, optional callback
  */
