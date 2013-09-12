@@ -1,6 +1,6 @@
 {
   "name": "geogram",
-  "version": "0.4.2-1",
+  "version": "0.4.2-4",
   "private": true,
   "scripts": {
     "start": "node app.js"
