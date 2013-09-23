@@ -13,6 +13,15 @@ $(document).ready(function(){
     $('#maxUTC').val("2013-09-01")
   }
 
+  // For debugging only
+  if(location.hash.match(/^#mother$/)){
+    // Prepopulate value
+    log('We are from Mother!')
+    $('#address').val('595 11th Avenue, NY NY')
+    $('#name_of_folder').val('Mother NY Example')
+    $('#distance').val(500)
+  }
+
   var render
     , couchdb
     , socket
