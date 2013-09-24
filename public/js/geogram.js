@@ -17,7 +17,7 @@ $(document).ready(function(){
   if(location.hash.match(/^#mother$/)){
     // Prepopulate value
     log('We are from Mother!')
-    $('#address').val('595 11th Avenue, NY NY')
+    $('#address').focus().val('595 11th Avenue, NY NY')
     $('#name_of_folder').val('Mother NY Example')
     $('#distance').val(500)
   }
@@ -553,6 +553,12 @@ $(document).ready(function(){
     log("Rendering data...")
 
     render.instagramThumbs( $('#instagram-photos-container').find('ul'), data.data)
+
+    setTimeout(function(){
+      var insta = document.getElementById('instagram-photos-container');
+      window.scrollTo(insta.offsetLeft,insta.offsetTop)
+      log('scrolling to: '+ insta.offsetLeft + ", " + insta.offsetTop)
+    },1000)
 
   }) // end socket.on('geosearch-response')
 

@@ -4883,16 +4883,12 @@ undefinedundefinedundefinedundefinedundefinedundefined.effeckt-tooltip[data-effe
 .st-content {
   height: 100%;
 }
-.st-content {
-  overflow-y: scroll;
-}
 .st-content,
 .st-content-inner {
   position: relative;
 }
 .st-container {
   position: relative;
-  overflow: hidden;
 }
 .st-pusher {
   position: relative;
