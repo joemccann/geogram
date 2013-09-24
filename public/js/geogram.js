@@ -32,7 +32,7 @@ $(document).ready(function(){
   // Global
   window.Geogram = {
       uuid: null,
-      isBrowserSessionOnly: false
+      isBrowserSessionOnly: true
     , hasTouch:true
     , map: {
         init: null
@@ -528,16 +528,21 @@ $(document).ready(function(){
 
   socket.on('geosearch-response', function(data){
 
-    // TODO: FIX THIS SOMEHOW SO NOT EVERY EVENT EMITTED
+    // TODO: FIX THIS SOME HOW SO NOT EVERY EVENT EMITTED
     // POSSIBLY BY USERNAME ASSOCIATED? DOESN'T ALLOW FOR 
     // MULTIPLE CONNECTIONS...
 
+    log(data)
+
+    log(Geogram.uuid + " is the uuid if exists from response")
+
     if(!Geogram.uuid){
-      Geogram.uuid = data.jobId 
+      log('setting id to: '+ data.uuid)
+      Geogram.uuid = data.uuid 
     }
 
-    if(data.jobId != Geogram.uuid){
-      log("JobId " + data.jobId + "is irrelevant")
+    if(data.uuid != Geogram.uuid){
+      log("JobId " + data.jobId + " is irrelevant")
       return
     }
 
@@ -609,10 +614,15 @@ $(document).ready(function(){
 
     $('#name_of_folder').val( $('#userprefix').val() +":"+ $('#name_of_folder').val() )
 
+    log(Geogram.uuid + " is the uuid if it exists.")
+
     if(Geogram.uuid && Geogram.isBrowserSessionOnly){
-      log("sending messag killjob for id %s", Geogram.uuid)
+      log("sending message killjob for id %s", Geogram.uuid)
       // Then we need to let server know that we are done with this job ID
       socket.emit('killjob', { jobId: Geogram.uuid })
+      // Reset the Geogram.uuid
+      Geogram.uuid = null
+      log(Geogram.uuid + " --> should be null")
     }
 
     // Geogram.uuid = md5( $('#name_of_folder').val() )
