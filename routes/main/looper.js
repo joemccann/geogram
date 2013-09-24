@@ -120,7 +120,7 @@ Looper.prototype.executeLoop = function(looperSuccesCb,jobOnCompleteCb){
           // TODO: FIRST, READ THE LATEST, THEN ADD TO IT.
           return geo.read(self.jobId,function readCb(err,data){
 
-            if(err) return cb(err)
+            if(err) return jobOnCompleteCb(err)
 
             var currentData = data
             console.log(currentData.geocapturedData.length + " is current data length.")  

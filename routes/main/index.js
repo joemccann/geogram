@@ -163,7 +163,7 @@ exports.realtime_search_geo = function(clientData,uuid,socket,cb){
         cb && cb(null,parsedJson)
 
         var removalFromDb = function(){
-          console.warn("removalFromDb not implemented yet")
+          console.warn("removalFromDb not implemented yet".bold.yellow)
         }
 
         return (new Looper(clientData,uuid,socket,30000,clientData.maxUTC))

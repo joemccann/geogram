@@ -64,9 +64,42 @@ Geocapture.prototype.create = function(captureData,cb){
     }
     else{
       // Does exist
-      cb(new Error('Geocapture document already exists.'))
+      console.warn('Geocapture document already exists.')
+
+      var doc = self._serializeToJson()
+      doc.geocapturedData = captureData
+
+
+/* REFACTOR THIS NOW **/
+
+      self.read(self.id, function readCbInCreate(err,data){
+        if(err) return cb(new Error('Something went wrong with reading from the database.')) 
+        else{
+
+            var currentData = data
+            console.log(currentData.geocapturedData.length + " is current data length.")  
+
+            var doc = self._serializeToJson()
+            doc.geocapturedData = captureData
+
+            // Merge
+            currentData.geocapturedData = currentData.geocapturedData.concat(doc.geocapturedData)
+
+            // Remove dupes
+            currentData.geocapturedData = self.removeDuplicateObjectsFromArray(currentData.geocapturedData,'id')
+            console.log(currentData.geocapturedData.length + " is length of unique objects.")
+
+            self.update(currentData, self.id, function updateCb(err,updateData){
+              if(err) return cb(err)
+              console.log(updateData.ok ? "Update was successful.".green : "Update was a failure.".red)
+              return cb(null,data)
+            }) // end self.update()
+
+        }       
+      }) // end self.read()
+
     }
-  })
+  }) // end self.head()
 
 }
 
