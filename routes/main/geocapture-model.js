@@ -91,8 +91,10 @@ Geocapture.prototype.create = function(captureData,cb){
 
             self.update(currentData, self.id, function updateCb(err,updateData){
               if(err) return cb(err)
-              console.log(updateData.ok ? "Update was successful.".green : "Update was a failure.".red)
-              return cb(null,data)
+              else{
+                console.log(updateData.ok ? "Update was successful.".green : "Update was a failure.".red)
+                return cb(null,data)
+              }
             }) // end self.update()
 
         }       
